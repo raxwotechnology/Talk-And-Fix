@@ -1,0 +1,179 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
+import useAuthStore from '../store/authStore';
+import useSettingsStore from '../store/settingsStore';
+import { registerUser } from '../services/api';
+import { toast } from 'react-toastify';
+
+// Sri Lankan phone validation
+const SL_PHONE_REGEX = /^(?:\+94|0)?[0-9]{9}$/;
+const isValidSLPhone = (phone) => {
+  if (!phone) return true; // optional field
+  return SL_PHONE_REGEX.test(phone.replace(/[\s\-()]/g, ''));
+};
+
+const Register = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
+  const login = useAuthStore((state) => state.login);
+  const settings = useSettingsStore((s) => s.settings);
+  const brandName = settings?.shopName || 'Mobile Hub';
+  const brandLogoUrl = settings?.logoUrl;
+  const navigate = useNavigate();
+
+  const handlePhoneChange = (value) => {
+    setPhone(value);
+    if (value && !isValidSLPhone(value)) {
+      setPhoneError('Enter a valid Sri Lankan number (e.g., 0771234567 or +94771234567)');
+    } else {
+      setPhoneError('');
+    }
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    if (phone && !isValidSLPhone(phone)) {
+      toast.error('Please enter a valid Sri Lankan phone number');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { data } = await registerUser({ name, email, password, phone });
+      login(data);
+      toast.success('Account created successfully! 🎉');
+      navigate('/');
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 
+                       error.response?.data?.error || 
+                       error.message || 
+                       'Registration failed. Please try again.';
+      toast.error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-[85vh] flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-stone-100 py-12">
+      <motion.div
+        className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-card-border w-full max-w-md mx-4"
+        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+      >
+        <div className="text-center mb-8">
+          <Link to="/" className="text-3xl font-bold text-primary-blue inline-flex items-center gap-2 mb-4">
+            {brandLogoUrl && <img src={brandLogoUrl} alt={brandName} className="w-9 h-9 rounded object-cover" />}
+            <span>{brandName}</span>
+          </Link>
+          <h1 className="text-2xl font-bold text-dark-navy mt-0 mb-2">Create Account</h1>
+          <p className="text-muted-text m-0">Join {brandName} for curated style and smart essentials</p>
+        </div>
+
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-dark-navy mb-1.5" htmlFor="reg-name">
+              Full Name
+            </label>
+            <input
+              type="text"
+              id="reg-name"
+              className="w-full border border-card-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-blue focus:border-transparent outline-none transition-all"
+              placeholder="John Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-navy mb-1.5" htmlFor="reg-email">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="reg-email"
+              className="w-full border border-card-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-blue focus:border-transparent outline-none transition-all"
+              placeholder="yourname@gmail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-navy mb-1.5" htmlFor="reg-phone">
+              Phone Number <span className="text-xs text-muted-text font-normal">(Sri Lankan)</span>
+            </label>
+            <input
+              type="tel"
+              id="reg-phone"
+              className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:border-transparent outline-none transition-all ${
+                phoneError ? 'border-red-400 focus:ring-red-300' : 'border-card-border focus:ring-primary-blue'
+              }`}
+              placeholder="0771234567 or +94771234567"
+              value={phone}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+            />
+            {phoneError && (
+              <p className="text-xs text-red-500 mt-1">{phoneError}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-navy mb-1.5" htmlFor="reg-password">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="reg-password"
+                className="w-full border border-card-border rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-primary-blue focus:border-transparent outline-none transition-all"
+                placeholder="Min. 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-text hover:text-dark-navy"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-primary-blue text-white font-semibold py-3.5 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-text">
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary-blue font-semibold hover:underline">
+              Sign In
+            </Link>
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default Register;
