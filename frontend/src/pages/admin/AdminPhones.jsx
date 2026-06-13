@@ -12,7 +12,7 @@ import SupplierReturnsPanel from '../inventory/SupplierReturnsPanel';
 import { getImageUrl, handleImageError, isDirectImageUrl, convertExternalUrl } from '../../utils/imageHelper';
 
 const emptyForm = {
-  name: '', categoryId: '', description: '', price: '', mrp: '', discount: '', unit: 'pcs',
+  name: '', categoryId: '', description: '', price: '', minPrice: '', mrp: '', discount: '', unit: 'pcs',
   stock: '', purchasePrice: '', images: '', isFeatured: false, isOnSale: false, status: 'active', storeId: '',
   brand: '', modelNumber: '', ram: '', storage: '', color: '', condition: 'new', imei: '', warranty: '', supplierId: '', productLink: ''
 };
@@ -24,7 +24,7 @@ const AdminPhones = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { selectedStoreId } = useAdminStoreStore();
+  const { selectedStoreId, setSelectedStoreId } = useAdminStoreStore();
   const [search, setSearch] = useState('');
   const [brandFilter, setBrandFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
@@ -100,6 +100,7 @@ const AdminPhones = () => {
       categoryId: product.categoryId?._id || '',
       description: product.description || '',
       price: product.price || '',
+      minPrice: product.minPrice || '',
       mrp: product.mrp || '',
       discount: product.discount || '',
       unit: product.unit || 'pcs',
@@ -156,6 +157,7 @@ const AdminPhones = () => {
       const payload = {
         ...form,
         price: Number(form.price),
+        minPrice: Number(form.minPrice) || 0,
         mrp: Number(form.mrp) || Number(form.price),
         discount: Number(form.discount) || 0,
         stock: Number(form.stock),
@@ -270,9 +272,12 @@ const AdminPhones = () => {
           </div>
         </div>
 
-        {/* Suppliers Tab */}
         {activeTab === 'suppliers' && (
-          <SuppliersPanel storeId={selectedStoreId !== 'all' ? selectedStoreId : undefined} />
+          <SuppliersPanel 
+            storeId={selectedStoreId !== 'all' ? selectedStoreId : undefined} 
+            stores={stores}
+            onStoreChange={(id) => setSelectedStoreId(id)}
+          />
         )}
 
         {/* Stock Receiving Tab */}
@@ -391,6 +396,11 @@ const AdminPhones = () => {
                         </td>
                         <td className="px-6 py-3.5">
                           <div className="font-bold text-dark-navy">Rs. {Number(product.price || 0).toLocaleString()}</div>
+                          {Number(product.minPrice || 0) > 0 && (
+                            <div className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full mt-1 inline-block">
+                              Min Rs. {Number(product.minPrice || 0).toLocaleString()}
+                            </div>
+                          )}
                           <div className="text-xs text-muted-text">Stock: <span className={`font-bold ${product.stock <= 5 ? 'text-red-500' : 'text-emerald-500'}`}>{product.stock}</span></div>
                         </td>
                         <td className="px-6 py-3.5 text-xs">
@@ -631,6 +641,10 @@ const AdminPhones = () => {
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Selling Price *</label>
                       <input type="number" required value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 text-sm font-bold text-indigo-700" placeholder="0.00" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Minimum Price</label>
+                      <input type="number" min="0" value={form.minPrice} onChange={(e) => setForm({ ...form, minPrice: e.target.value })} className="w-full bg-red-50 border border-red-100 rounded-xl py-3 px-4 text-sm font-bold text-red-700" placeholder="Cannot sell below" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Purchase/Cost Price</label>

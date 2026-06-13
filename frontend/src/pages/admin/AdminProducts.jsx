@@ -22,7 +22,7 @@ const AdminProducts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('products'); // products | suppliers | receiving | supplierReturns
-  const { selectedStoreId } = useAdminStoreStore();
+  const { selectedStoreId, setSelectedStoreId } = useAdminStoreStore();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -186,7 +186,7 @@ const AdminProducts = () => {
         </div>
 
         {activeTab === 'suppliers' && (
-          <SuppliersPanel storeId={selectedStoreId !== 'all' ? selectedStoreId : ''} stores={stores} onStoreChange={() => {}} />
+          <SuppliersPanel storeId={selectedStoreId !== 'all' ? selectedStoreId : ''} stores={stores} onStoreChange={(id) => setSelectedStoreId(id)} />
         )}
         {activeTab === 'receiving' && (
           <StockReceivingPanel

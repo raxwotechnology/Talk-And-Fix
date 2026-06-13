@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Calculator, Send, FileText, CreditCard, Download } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { getEmployees, calculateSalary, processSalaryPayment, getPayrollReport } from '../../services/api';
+import { getEmployees, calculateSalary, processSalaryPayment, getPayrollReport, downloadPaysheet } from '../../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { toast } from 'react-toastify';
-import { managerNavGroups as navItems } from './managerNavItems';
+import { managerNavGroups } from './managerNavItems';
 
 
 
 const now = new Date();
 
-const ManagerPayroll = ({ navItems = managerNavItems, title = 'Manager Dashboard' }) => {
+const ManagerPayroll = ({ navItems = managerNavGroups, title = 'Manager Dashboard' }) => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState('');
@@ -76,6 +76,20 @@ const ManagerPayroll = ({ navItems = managerNavItems, title = 'Manager Dashboard
     const blob = new Blob([rows], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `payroll_${month}_${year}.csv`; a.click();
     toast.success('Payroll report exported');
+  };
+
+  const handleDownloadPaysheet = async (payroll) => {
+    try {
+      const { data } = await downloadPaysheet(payroll._id);
+      const url = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `paysheet_${payroll.employeeId?.name || 'employee'}_${payroll.month}_${payroll.year}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to download paysheet');
+    }
   };
 
   if (loading) return <DashboardLayout navItems={navItems} title={title}><div className="flex items-center justify-center h-64"><div className="w-10 h-10 border-4 border-primary-blue border-t-transparent rounded-full animate-spin" /></div></DashboardLayout>;
@@ -185,6 +199,7 @@ const ManagerPayroll = ({ navItems = managerNavItems, title = 'Manager Dashboard
                       <th className="text-right px-3 py-3 font-medium text-amber-600">ETF 3%</th>
                       <th className="text-right px-3 py-3 font-medium text-primary-blue">Net</th>
                       <th className="text-center px-3 py-3 font-medium text-muted-text">Status</th>
+                      <th className="text-right px-5 py-3 font-medium text-muted-text">Paysheet</th>
                     </tr></thead>
                     <tbody className="divide-y divide-card-border">
                       {report.payrolls.map(p => (
@@ -197,6 +212,11 @@ const ManagerPayroll = ({ navItems = managerNavItems, title = 'Manager Dashboard
                           <td className="px-3 py-3 text-right text-amber-600">Rs. {p.etfEmployer?.toLocaleString()}</td>
                           <td className="px-3 py-3 text-right font-bold text-primary-blue">Rs. {p.netSalary?.toLocaleString()}</td>
                           <td className="px-3 py-3 text-center"><span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">{p.status}</span></td>
+                          <td className="px-5 py-3 text-right">
+                            <button onClick={() => handleDownloadPaysheet(p)} className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-dark-navy px-3 py-1.5 rounded-lg text-xs font-semibold">
+                              <Download size={14} /> PDF
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

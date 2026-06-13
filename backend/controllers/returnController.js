@@ -14,6 +14,11 @@ const resolveStoreId = async (req) => {
     const store = await Store.findOne({ managerId: req.user._id }).select('_id').lean();
     return store?._id || null;
   }
+  if (req.user.role === 'cashier' || req.user.role === 'stockEmployee') {
+    if (req.user.assignedStore) return req.user.assignedStore;
+    const store = await Store.findOne({ isActive: true }).select('_id').lean();
+    return store?._id || null;
+  }
   return req.body?.storeId || req.query?.storeId || null;
 };
 

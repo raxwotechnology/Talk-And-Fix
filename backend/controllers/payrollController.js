@@ -1,5 +1,6 @@
 const Payroll = require('../models/Payroll');
 const User = require('../models/User');
+const Settings = require('../models/Settings');
 const { sendNotification } = require('../utils/notificationService');
 const { salaryPaidEmail, sendEmail } = require('../utils/emailService');
 
@@ -362,4 +363,83 @@ const exportEmployeeSalaryReport = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { calculateSalary, processSalaryPayment, getSalaryHistory, getPayrollReport, exportEmployeeSalaryReport };
+const downloadPaysheet = async (req, res, next) => {
+  try {
+    const payroll = await Payroll.findById(req.params.id)
+      .populate('employeeId', 'name email role employeeInfo')
+      .populate('storeId', 'name address phone')
+      .populate('processedBy', 'name');
+
+    if (!payroll) {
+      res.status(404);
+      return next(new Error('Payroll record not found'));
+    }
+
+    if (String(payroll.employeeId?._id) !== String(req.user._id) && !['admin', 'manager'].includes(req.user.role)) {
+      res.status(403);
+      return next(new Error('Not authorized'));
+    }
+
+    const settings = await Settings.findOne().lean();
+    const template = settings?.documentTemplates?.paysheet || {};
+    const fields = template.fields || {};
+    const PDF = loadPdfkit();
+    const doc = new PDF({ margin: 42, size: template.layout === 'compact' ? 'A5' : 'A4' });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="paysheet-${payroll.employeeId?.name || 'employee'}-${payroll.month}-${payroll.year}.pdf"`);
+    doc.pipe(res);
+
+    const accent = template.accentColor || '#2563eb';
+    doc.rect(0, 0, doc.page.width, 72).fill(accent);
+    doc.fillColor('#ffffff').fontSize(18).text(template.title || 'Paysheet', 42, 24);
+    doc.fontSize(10).text(settings?.shopName || 'Mobile Hub', 42, 48);
+
+    doc.fillColor('#111827').moveDown(3);
+    doc.fontSize(12).text(`Period: ${payroll.month}/${payroll.year}`);
+    doc.text(`Employee: ${payroll.employeeId?.name || 'Unknown'}`);
+    if (fields.showEmployeeRole !== false) doc.text(`Role: ${payroll.employeeId?.role || 'N/A'}`);
+    if (fields.showStore !== false) doc.text(`Store: ${payroll.storeId?.name || 'N/A'}`);
+    if (fields.showProcessedBy !== false) doc.text(`Processed By: ${payroll.processedBy?.name || 'System'}`);
+    doc.moveDown(1);
+
+    const rows = [
+      ['Basic Salary', payroll.basicSalary],
+      ['Allowances', payroll.allowances],
+      ['Bonuses / OT / Targets', payroll.bonuses],
+      ['Gross Salary', payroll.grossSalary],
+      ['EPF Employee', -payroll.epfEmployee],
+      ['Other Deductions', -payroll.otherDeductions],
+      ['Attendance Deductions', -payroll.attendanceDeductions],
+      ['Net Salary', payroll.netSalary],
+    ];
+
+    rows.forEach(([label, value], index) => {
+      const isTotal = label === 'Net Salary';
+      if (isTotal) {
+        doc.moveDown(0.3);
+        doc.strokeColor(accent).lineWidth(1).moveTo(42, doc.y).lineTo(doc.page.width - 42, doc.y).stroke();
+        doc.moveDown(0.5);
+      }
+      doc.fontSize(isTotal ? 13 : 10).fillColor(isTotal ? accent : '#111827');
+      doc.text(label, 42, doc.y, { continued: true });
+      doc.text(`Rs. ${Number(value || 0).toLocaleString()}`, { align: 'right' });
+      if (index < rows.length - 1) doc.moveDown(0.45);
+    });
+
+    if (fields.showEmployerContributions !== false) {
+      doc.moveDown(1);
+      doc.fillColor('#4b5563').fontSize(10).text(`Employer EPF: Rs. ${Number(payroll.epfEmployer || 0).toLocaleString()}`);
+      doc.text(`Employer ETF: Rs. ${Number(payroll.etfEmployer || 0).toLocaleString()}`);
+    }
+
+    if (template.footerText) {
+      doc.moveDown(1.5);
+      doc.fontSize(9).fillColor('#6b7280').text(template.footerText, { align: 'center' });
+    }
+
+    doc.end();
+  } catch (error) { next(error); }
+};
+
+module.exports = { calculateSalary, processSalaryPayment, getSalaryHistory, getPayrollReport, exportEmployeeSalaryReport, downloadPaysheet };

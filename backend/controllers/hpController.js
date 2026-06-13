@@ -175,10 +175,26 @@ const getAllCustomers = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// @desc    Delete HP record
+// @route   DELETE /api/hp/:id
+// @access  Private/Admin
+const deleteHPRecord = async (req, res, next) => {
+  try {
+    const record = await HirePurchase.findById(req.params.id);
+    if (!record) {
+      res.status(404);
+      return next(new Error('HP record not found'));
+    }
+    await record.deleteOne();
+    res.json({ message: 'Hire Purchase record deleted' });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   getHPRecords,
   getHPById,
   recordHPPayment,
   getCustomerHistory,
-  getAllCustomers
+  getAllCustomers,
+  deleteHPRecord
 };

@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   checkIn, checkOut, getMyAttendance, getAttendanceReport,
   requestLeave, getMyLeaves, getStoreLeaves, approveLeave, rejectLeave,
-  getEmployees, addEmployee, updateEmployee,
+  getEmployees, addEmployee, updateEmployee, deleteEmployee,
   startBreak, endBreak, getBreakHistory, getActiveBreak,
   createTarget, getTargets, getMyTargets, updateTargetProgress, payTargetBonus,
   getEmployeePerformance,
@@ -32,6 +32,7 @@ router.post('/leaves/create-for-employee', requirePermission('employees'), admin
 router.get('/employees', requirePermission('employees'), getEmployees);
 router.post('/employees', requirePermission('employees'), addEmployee);
 router.put('/employees/:id', requirePermission('employees'), updateEmployee);
+router.delete('/employees/:id', requirePermission('employees'), deleteEmployee);
 
 // Breaks
 router.post('/breaks/start', authorize('cashier', 'deliveryGuy', 'stockEmployee', 'manager'), startBreak);

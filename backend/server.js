@@ -23,8 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 // Set CORS_ORIGINS in .env for custom domains (comma-separated)
 const envOrigins = (process.env.CORS_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
 const allowedOrigins = [
-  'https://mobilehubtech.netlify.app',
-  'https://www.mobilehubtech.netlify.app',
+  'https://srmobile.netlify.app',
+  'https://www.srmobile.netlify.app',
   'http://localhost:3000',
   ...envOrigins,
 ];

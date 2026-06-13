@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, Edit3, Save, X, UserPlus, Clock, Calendar, CheckCircle } from 'lucide-react';
+import { Users, Search, Edit3, Save, X, UserPlus, Clock, Calendar, CheckCircle, Trash2 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { getEmployees, addEmployee, updateEmployee, adminMarkAttendance, adminCreateLeave, getAttendanceReport, getStoreLeaves } from '../../services/api';
+import { getEmployees, addEmployee, updateEmployee, deleteEmployee, adminMarkAttendance, adminCreateLeave, getAttendanceReport, getStoreLeaves } from '../../services/api';
 import { toast } from 'react-toastify';
-import { managerNavGroups as navItems } from './managerNavItems';
+import { managerNavGroups } from './managerNavItems';
 import useAuthStore from '../../store/authStore';
 
 
@@ -20,7 +20,7 @@ const emptyNewForm = {
   salary: '', department: '', bankAccount: '', bankName: '', epfNo: '', etfNo: '',
 };
 
-const ManagerEmployees = ({ navItems = managerNavItems, title = 'Manager Dashboard' }) => {
+const ManagerEmployees = ({ navItems = managerNavGroups, title = 'Manager Dashboard' }) => {
   const user = useAuthStore((s) => s.user);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +64,17 @@ const ManagerEmployees = ({ navItems = managerNavItems, title = 'Manager Dashboa
       fetchEmployees();
     } catch (err) {
       toast.error('Failed to update');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to permanently delete this employee? This cannot be undone.')) return;
+    try {
+      await deleteEmployee(id);
+      toast.success('Employee deleted successfully');
+      fetchEmployees();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete employee');
     }
   };
 
@@ -161,9 +172,14 @@ const ManagerEmployees = ({ navItems = managerNavItems, title = 'Manager Dashboa
                     <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">🏪 {emp.assignedStore.name}</span>
                   )}
                   {editing !== emp._id ? (
-                    <button onClick={() => handleEdit(emp)} className="p-2 rounded-lg hover:bg-emerald-50 text-muted-text hover:text-primary-blue transition-colors">
-                      <Edit3 size={16} />
-                    </button>
+                    <div className="flex gap-1">
+                      <button onClick={() => handleEdit(emp)} className="p-2 rounded-lg hover:bg-emerald-50 text-muted-text hover:text-primary-blue transition-colors" title="Edit">
+                        <Edit3 size={16} />
+                      </button>
+                      <button onClick={() => handleDelete(emp._id)} className="p-2 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   ) : (
                     <div className="flex gap-1">
                       <button onClick={() => handleSave(emp._id)} className="p-2 rounded-lg bg-emerald-50 text-primary-blue"><Save size={16} /></button>

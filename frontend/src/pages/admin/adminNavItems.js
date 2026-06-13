@@ -78,11 +78,10 @@ const adminNavGroups = [
       { path: '/admin/hp',         label: 'Installments (HP)', icon: Clock },
       { path: '/admin/expenses',   label: 'Expenses & Income', icon: Wallet },
       { path: '/admin/financials', label: 'Financials',        icon: DollarSign },
+      { path: '/admin/profit-reports', label: 'Profit Reports', icon: TrendingUp },
       { path: '/admin/payroll',    label: 'Payroll',           icon: CreditCard },
       { path: '/admin/overtime',   label: 'Overtime Pay',      icon: Clock },
-
     ],
-
   },
   {
     label: 'Analytics & Reports',

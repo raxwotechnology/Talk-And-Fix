@@ -27,6 +27,12 @@ const resolveStoreId = async (user) => {
     return store?._id || null;
   }
 
+  // Cashier / stockEmployee fallback if assignedStore is not set
+  if (user.role === 'cashier' || user.role === 'stockEmployee') {
+    const store = await Store.findOne({ isActive: true });
+    return store?._id || null;
+  }
+
   return null;
 };
 
@@ -101,9 +107,21 @@ const endSession = async (req, res, next) => {
       : calcDenomsTotal(closingDenoms);
 
     const orders = await Order.find({ posSessionId: session._id, isPosOrder: true });
-    const cashSales = orders.filter((o) => o.paymentMethod === 'cash').reduce((s, o) => s + (o.totalAmount || 0), 0);
-    const nonCashSales = orders.filter((o) => o.paymentMethod !== 'cash').reduce((s, o) => s + (o.totalAmount || 0), 0);
-    const totalSales = cashSales + nonCashSales;
+    let cashSales = 0;
+    let nonCashSales = 0;
+    orders.forEach((o) => {
+      if (o.payments && o.payments.length > 0) {
+        o.payments.forEach((p) => {
+          if (p.method === 'cash') cashSales += (p.amount || 0);
+          else nonCashSales += (p.amount || 0);
+        });
+      } else {
+        if (o.paymentMethod === 'cash') cashSales += (o.totalAmount || 0);
+        else nonCashSales += (o.totalAmount || 0);
+      }
+    });
+
+    const totalSales = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const totalItemsSold = orders.reduce((s, o) => s + (o.items || []).reduce((x, it) => x + (it.quantity || 0), 0), 0);
 
     const expectedCash = Number(session.openingCashAmount || 0) + Number(cashSales || 0);
@@ -155,12 +173,12 @@ const getPosProducts = async (req, res, next) => {
         { sku: { $regex: search, $options: 'i' } },
       ];
       products = await Product.find(filter)
-        .select('name price mrp stock images unit barcode sku variants discount allowKokoPos')
+        .select('name price mrp minPrice stock images unit barcode sku variants discount allowKokoPos')
         .limit(50)
         .lean();
     } else {
       products = await Product.find(filter)
-        .select('name price mrp stock images unit barcode sku variants discount allowKokoPos')
+        .select('name price mrp minPrice stock images unit barcode sku variants discount allowKokoPos')
         .limit(100)
         .lean();
     }
@@ -187,7 +205,7 @@ const getProductByBarcode = async (req, res, next) => {
       storeId,
       status: 'active',
     })
-      .select('name price mrp stock images unit barcode sku variants discount allowKokoPos')
+      .select('name price mrp minPrice stock images unit barcode sku variants discount allowKokoPos')
       .lean();
 
     if (!product) {
@@ -288,13 +306,17 @@ const posCheckout = async (req, res, next) => {
       creditNote = '',
       loyaltyPointsRedeemed,
       loyaltyDiscount,
-      accountId, // New: account to credit (Cash Drawer, Bank Account, etc.)
-      chequeDetails, // New: if paymentMethod is Cheque
-      hirePurchaseData, // New: if paymentMethod is Hire Purchase
+      accountId,
+      chequeDetails,
+      hirePurchaseData,
+      payments = [], // Split payment rows
+      exchangeReturnId, // Return reference
+      exchangeCredit = 0, // Return store credit
+      taxRate: customTaxRate, // Custom tax rate override
     } = req.body;
 
     const finalAccountId = (accountId && accountId !== "") ? accountId : undefined;
-
+    const exchangeCreditAmt = Number(exchangeCredit || 0);
 
     let normalizedCustomerPhone = customerPhone ? formatSLPhone(customerPhone) : undefined;
     if (customerPhone && !isValidSLPhone(customerPhone)) {
@@ -312,12 +334,6 @@ const posCheckout = async (req, res, next) => {
     if (sendReceiptEmail && receiptEmail && !isValidEmail(receiptEmail)) {
       res.status(400);
       return next(new Error('Please enter a valid email address for receipt delivery.'));
-    }
-
-
-    if (['bank', 'cheque'].includes(paymentMethod) && !accountId) {
-      res.status(400);
-      return next(new Error('Target bank account is required for Bank Transfer/Cheque transactions'));
     }
 
     if (!items || items.length === 0) {
@@ -343,25 +359,46 @@ const posCheckout = async (req, res, next) => {
       return next(new Error('Store not found'));
     }
 
-    // Validate stock and calculate totals
+    // Determine if any item is a mobile device and validate stock
+    let hasMobiles = false;
     let subtotal = 0;
     const validatedItems = [];
 
     for (const item of items) {
-      const product = await Product.findById(item.productId);
+      const product = await Product.findById(item.productId).populate('categoryId');
       if (!product) {
         res.status(404);
         return next(new Error(`Product not found: ${item.name || item.productId}`));
       }
+
+      const catName = product.categoryId?.name || '';
+      const isMobile = /mobile|phone|tablet|smartphone/i.test(catName) || !!product.ram || !!product.storage || (product.imei && product.imei.length > 0);
+      if (isMobile) hasMobiles = true;
+
+      // Validate stock
       if (product.stock < item.quantity) {
         res.status(400);
-        return next(
-          new Error(`Insufficient stock for ${product.name}. Available: ${product.stock}`)
-        );
+        return next(new Error(`Insufficient stock for ${product.name}. Available: ${product.stock}`));
       }
+
+      // Validate Koko POS eligibility
       if (paymentMethod === 'koko' && product.allowKokoPos === false) {
         res.status(400);
         return next(new Error(`${product.name} is not eligible for Koko Pay in POS.`));
+      }
+
+      // Enforce IMEI list scan if mobile device
+      if (isMobile) {
+        if (!item.imei || item.imei.length !== item.quantity) {
+          res.status(400);
+          return next(new Error(`Please scan/select exactly ${item.quantity} IMEI number(s) for ${product.name}.`));
+        }
+        for (const im of item.imei) {
+          if (!product.imei.includes(im)) {
+            res.status(400);
+            return next(new Error(`IMEI ${im} is not available in stock for ${product.name}.`));
+          }
+        }
       }
 
       const lineTotal = item.price * item.quantity;
@@ -374,7 +411,16 @@ const posCheckout = async (req, res, next) => {
         quantity: item.quantity,
         price: item.price,
         unitCostAtSale: Number(product.avgCost || product.lastCost || 0),
+        imei: item.imei || [],
       });
+    }
+
+    // Require Customer details for mobiles or credit sales
+    if (hasMobiles || isCredit) {
+      if (!customerName || !customerPhone) {
+        res.status(400);
+        return next(new Error('Customer name and phone number are required for credit sales or mobile device purchases.'));
+      }
     }
 
     // Calculate manual discount
@@ -399,11 +445,11 @@ const posCheckout = async (req, res, next) => {
         });
         if (voucher) {
           if (voucher.expiresAt && new Date(voucher.expiresAt) < new Date()) {
-            // Expired — skip silently
+            // Expired — skip
           } else if (voucher.usedCount >= voucher.maxUses) {
-            // Max uses reached — skip silently
+            // Max uses reached — skip
           } else if (voucher.minOrderAmount && subtotal < voucher.minOrderAmount) {
-            // Min order not met — skip silently
+            // Min order not met — skip
           } else {
             if (voucher.type === 'percentage') {
               couponDiscount = (subtotal * voucher.value) / 100;
@@ -413,49 +459,74 @@ const posCheckout = async (req, res, next) => {
             } else {
               couponDiscount = Math.min(voucher.value, subtotal);
             }
-            // Increment usage
             voucher.usedCount = (voucher.usedCount || 0) + 1;
             await voucher.save();
             appliedCoupon = voucher.code;
           }
         }
-      } catch (err) {
-        // Voucher model may not exist — skip coupon
-      }
+      } catch (err) { /* ignore */ }
     }
 
     const totalDiscount = discountAmount + couponDiscount;
 
-    // Dynamic tax from settings
-    let taxRate = 0.05; // default 5%
-    try {
-      const Settings = require('../models/Settings');
-      const settings = await Settings.findOne();
-      if (settings?.taxRate !== undefined) taxRate = settings.taxRate;
-      
-      // Apply Koko Interest
-      if (paymentMethod === 'koko' && settings?.kokoInterestRate > 0) {
-        const kokoInterest = (subtotal - totalDiscount) * (settings.kokoInterestRate / 100);
-        subtotal += kokoInterest; // Or add as separate fee? User said "auto calculations". Usually adds to total.
-      }
-    } catch (err) { /* use default */ }
-
-
-    const taxableAmount = Math.max(0, subtotal - totalDiscount);
-    const tax = parseFloat((taxableAmount * taxRate).toFixed(2));
-    const totalAmount = parseFloat((taxableAmount + tax).toFixed(2));
-
-    // Change calculation for cash
-    let changeGiven = 0;
-    if (paymentMethod === 'cash' && tenderedAmount && !isCredit) {
-      changeGiven = parseFloat((tenderedAmount - totalAmount).toFixed(2));
-      if (changeGiven < 0) {
+    // Minimum Price Safeguard Check
+    const discountRatio = subtotal > 0 ? (totalDiscount / subtotal) : 0;
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+      const effectiveUnitPrice = item.price * (1 - discountRatio);
+      if (effectiveUnitPrice < (product.minPrice || 0)) {
         res.status(400);
-        return next(new Error('Tendered amount is less than total'));
+        return next(new Error(`Cannot sell for this price. ${product.name} minimum price is LKR ${product.minPrice}. (Meka me ganata denna ba)`));
       }
     }
 
-    // Generate invoice number (INV-YYYYMMDD-XXXX)
+    // Dynamic tax from settings or custom input override
+    let taxRate = 0.05; // default 5%
+    if (customTaxRate !== undefined) {
+      taxRate = Number(customTaxRate) / 100;
+    } else {
+      try {
+        const Settings = require('../models/Settings');
+        const settings = await Settings.findOne();
+        if (settings?.taxRate !== undefined) taxRate = settings.taxRate;
+        
+        // Apply Koko Interest
+        if (paymentMethod === 'koko' && settings?.kokoInterestRate > 0) {
+          const kokoInterest = (subtotal - totalDiscount) * (settings.kokoInterestRate / 100);
+          subtotal += kokoInterest;
+        }
+      } catch (err) { /* use default */ }
+    }
+
+    const taxableAmount = Math.max(0, subtotal - totalDiscount);
+    const tax = parseFloat((taxableAmount * taxRate).toFixed(2));
+    let totalAmount = parseFloat((taxableAmount + tax).toFixed(2));
+
+    // Deduct exchange return credit from grand total
+    if (exchangeCreditAmt > 0) {
+      totalAmount = parseFloat(Math.max(0, totalAmount - exchangeCreditAmt).toFixed(2));
+    }
+
+    // Determine payments made
+    const actualPayments = payments.length > 0 ? payments : [{
+      method: paymentMethod || 'cash',
+      amount: isCredit ? Number(amountPaid || 0) : totalAmount,
+      accountId: finalAccountId,
+      chequeDetails
+    }];
+
+    const totalPaidFromPayments = actualPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+    // Calculate change given for cash split
+    let changeGiven = 0;
+    const cashPayment = actualPayments.find(p => p.method === 'cash');
+    if (cashPayment && tenderedAmount && tenderedAmount > cashPayment.amount) {
+      changeGiven = parseFloat((tenderedAmount - cashPayment.amount).toFixed(2));
+    } else if (!payments.length && (paymentMethod || 'cash') === 'cash' && tenderedAmount && tenderedAmount > totalAmount && !isCredit) {
+      changeGiven = parseFloat((tenderedAmount - totalAmount).toFixed(2));
+    }
+
+    // Generate invoice number
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
     const todayStart = new Date(today);
@@ -467,7 +538,7 @@ const posCheckout = async (req, res, next) => {
     const invoiceNumber = `INV-${dateStr}-${String(todayPosCount + 1).padStart(4, '0')}`;
 
     // Credit sale handling
-    const creditBalance = isCredit ? Math.max(0, totalAmount - Number(amountPaid || 0)) : 0;
+    const creditBalance = isCredit ? Math.max(0, totalAmount - totalPaidFromPayments) : 0;
 
     // Create the POS order
     const order = await Order.create({
@@ -477,14 +548,14 @@ const posCheckout = async (req, res, next) => {
       totalAmount,
       tax,
       deliveryFee: 0,
-      paymentMethod: paymentMethod || 'cash',
+      paymentMethod: paymentMethod || (actualPayments[0]?.method) || 'cash',
       paymentStatus: isCredit && creditBalance > 0 ? 'pending' : 'completed',
       orderStatus: 'completed',
       isPosOrder: true,
       invoiceNumber,
       cashierId: req.user._id,
       posSessionId: activeSession._id,
-      tenderedAmount: isCredit ? Number(amountPaid || 0) : (tenderedAmount || totalAmount),
+      tenderedAmount: isCredit ? totalPaidFromPayments : (tenderedAmount || totalAmount),
       changeGiven: isCredit ? 0 : changeGiven,
       customerName: customerName || undefined,
       customerPhone: normalizedCustomerPhone || undefined,
@@ -494,17 +565,33 @@ const posCheckout = async (req, res, next) => {
       sendSmsReceipt: !!sendSmsReceipt,
       printReceipt: !!printReceipt,
       isCredit: !!isCredit,
-      amountPaid: isCredit ? Number(amountPaid || 0) : totalAmount,
+      amountPaid: isCredit ? totalPaidFromPayments : totalAmount,
       creditBalance,
       creditNote: creditNote || undefined,
       loyaltyPointsRedeemed: loyaltyPointsRedeemed || 0,
       discountAmount: totalDiscount || 0,
+      payments: actualPayments,
+      exchangeReturnId: exchangeReturnId || undefined,
+      exchangeCredit: exchangeCreditAmt,
     });
 
-    // Deduct stock
-    for (const item of items) {
-      await Product.findByIdAndUpdate(item.productId, {
+    // Deduct stock and remove sold IMEIs
+    for (const item of validatedItems) {
+      const updateData = {
         $inc: { stock: -item.quantity },
+      };
+      if (item.imei && item.imei.length > 0) {
+        updateData.$pull = { imei: { $in: item.imei } };
+      }
+      await Product.findByIdAndUpdate(item.productId, updateData);
+    }
+
+    // Resolve CustomerReturn if exchangeReturnId was applied
+    if (exchangeReturnId) {
+      const CustomerReturn = require('../models/CustomerReturn');
+      await CustomerReturn.findByIdAndUpdate(exchangeReturnId, {
+        status: 'resolved',
+        resolution: 'exchange',
       });
     }
 
@@ -514,7 +601,6 @@ const posCheckout = async (req, res, next) => {
       .populate('cashierId', 'name')
       .lean();
 
-    // Add extra invoice data
     populatedOrder.subtotal = subtotal;
     populatedOrder.discountAmount = discountAmount;
     populatedOrder.discountType = discountType || null;
@@ -528,7 +614,10 @@ const posCheckout = async (req, res, next) => {
 
     if (sendSmsReceipt && normalizedCustomerPhone) {
       try {
-        await sendSms(normalizedCustomerPhone, buildPosReceiptMessage(totalAmount));
+        await sendSms(normalizedCustomerPhone, await buildPosReceiptMessage(totalAmount, {
+          invoiceNo,
+          orderNo: order._id.toString().slice(-8).toUpperCase(),
+        }));
       } catch (smsErr) {
         populatedOrder.smsReceiptError = smsErr.message;
       }
@@ -563,57 +652,23 @@ const posCheckout = async (req, res, next) => {
 
     // Record in Transaction Ledger via Ledger Service
     const { recordTransaction } = require('../services/ledgerService');
-    
-    if (totalAmount > 0 && !isCredit) {
-      await recordTransaction({
-        storeId,
-        accountId: finalAccountId,
-        type: 'income',
-        category: 'Sales',
-        amount: totalAmount,
-        paymentMethod: paymentMethod === 'cash' ? 'Cash' : 
-                       paymentMethod === 'card' ? 'Card' : 
-                       paymentMethod === 'cheque' ? 'Cheque' : 
-                       paymentMethod === 'koko' ? 'Koko' : 
-                       paymentMethod === 'hire_purchase' ? 'Hire Purchase' : 'Bank Transfer',
 
-        chequeDetails,
-        referenceNo: invoiceNumber,
-        description: `POS Sale - ${invoiceNumber}`,
-        createdBy: req.user._id,
-      });
-    } else if (isCredit && amountPaid > 0) {
-      await recordTransaction({
-        storeId,
-        accountId: finalAccountId,
-        type: 'income',
-        category: 'Sales (Partial Credit)',
-        amount: amountPaid,
-        paymentMethod: paymentMethod === 'cash' ? 'Cash' : 
-                       paymentMethod === 'card' ? 'Card' : 
-                       paymentMethod === 'cheque' ? 'Cheque' : 
-                       paymentMethod === 'koko' ? 'Koko' : 
-                       paymentMethod === 'hire_purchase' ? 'Hire Purchase' : 'Bank Transfer',
-
-        chequeDetails,
-        referenceNo: invoiceNumber,
-        description: `POS Sale (Credit) - ${invoiceNumber}`,
-        createdBy: req.user._id,
-      });
-    } else if (paymentMethod === 'hire_purchase' && hirePurchaseData?.downPayment > 0) {
-      await recordTransaction({
-        storeId,
-        accountId: finalAccountId,
-        type: 'income',
-        category: 'Sales (HP Downpayment)',
-        amount: hirePurchaseData.downPayment,
-        paymentMethod: 'Cash', 
-        referenceNo: invoiceNumber,
-        description: `POS Sale (HP Downpayment) - ${invoiceNumber}`,
-        createdBy: req.user._id,
-      });
+    for (const p of actualPayments) {
+      if (p.amount > 0) {
+        await recordTransaction({
+          storeId,
+          accountId: p.accountId,
+          type: 'income',
+          category: isCredit ? 'Sales (Partial Credit)' : 'Sales',
+          amount: p.amount,
+          paymentMethod: p.method,
+          chequeDetails: p.chequeDetails,
+          referenceNo: invoiceNumber,
+          description: `POS Sale - ${invoiceNumber}`,
+          createdBy: req.user._id,
+        });
+      }
     }
-
 
     // Hire Purchase Initialization
     if (paymentMethod === 'hire_purchase' && hirePurchaseData) {
@@ -644,7 +699,6 @@ const posCheckout = async (req, res, next) => {
     }
 
     res.status(201).json(populatedOrder);
-
 
   } catch (error) {
     next(error);
@@ -688,15 +742,22 @@ const getPosOrders = async (req, res, next) => {
     // Calculate shift summary
     const totalSales = orders.reduce((sum, o) => sum + o.totalAmount, 0);
     const totalOrders = orders.length;
-    const cashSales = orders
-      .filter((o) => o.paymentMethod === 'cash')
-      .reduce((sum, o) => sum + o.totalAmount, 0);
-    const cardSales = orders
-      .filter((o) => o.paymentMethod === 'card')
-      .reduce((sum, o) => sum + o.totalAmount, 0);
-    const kokoSales = orders
-      .filter((o) => o.paymentMethod === 'koko')
-      .reduce((sum, o) => sum + o.totalAmount, 0);
+    let cashSales = 0;
+    let cardSales = 0;
+    let kokoSales = 0;
+    orders.forEach((o) => {
+      if (o.payments && o.payments.length > 0) {
+        o.payments.forEach((p) => {
+          if (p.method === 'cash') cashSales += (p.amount || 0);
+          else if (p.method === 'card') cardSales += (p.amount || 0);
+          else if (p.method === 'koko') kokoSales += (p.amount || 0);
+        });
+      } else {
+        if (o.paymentMethod === 'cash') cashSales += (o.totalAmount || 0);
+        else if (o.paymentMethod === 'card') cardSales += (o.totalAmount || 0);
+        else if (o.paymentMethod === 'koko') kokoSales += (o.totalAmount || 0);
+      }
+    });
     const totalItemsSold = orders.reduce(
       (sum, o) => sum + (o.items || []).reduce((line, item) => line + Number(item.quantity || 0), 0),
       0
@@ -900,12 +961,80 @@ const settleCreditOrder = async (req, res, next) => {
 };
 
 
+// @desc    Get POS order by invoice number
+// @route   GET /api/pos/orders/invoice/:invoiceNumber
+// @access  Private/Cashier/Manager/Admin
+const getPosOrderByInvoice = async (req, res, next) => {
+  try {
+    const order = await Order.findOne({ invoiceNumber: req.params.invoiceNumber })
+      .populate('storeId', 'name address phone email logo')
+      .populate('cashierId', 'name')
+      .lean();
+
+    if (!order) {
+      res.status(404);
+      return next(new Error('Invoice not found'));
+    }
+
+    res.json(order);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Send receipt via SMS or Email manually
+// @route   POST /api/pos/orders/:id/send-receipt
+// @access  Private/Cashier/Manager/Admin
+const sendReceipt = async (req, res, next) => {
+  try {
+    const { type, recipient } = req.body;
+    const order = await Order.findById(req.params.id)
+      .populate('storeId', 'name address phone email logo')
+      .populate('cashierId', 'name')
+      .lean();
+
+    if (!order) {
+      res.status(404);
+      return next(new Error('Order not found'));
+    }
+
+    if (type === 'sms') {
+      if (!recipient || !isValidSLPhone(recipient)) {
+        res.status(400);
+        return next(new Error('Valid Sri Lankan phone number (+947XXXXXXXX) is required'));
+      }
+      const message = await buildPosReceiptMessage(order.totalAmount, {
+        invoiceNo: order.invoiceNumber || order._id.toString().slice(-8).toUpperCase(),
+        orderNo: order._id.toString().slice(-8).toUpperCase(),
+      });
+      await sendSms(formatSLPhone(recipient), message);
+      res.json({ success: true, message: 'SMS receipt sent' });
+    } else if (type === 'email') {
+      if (!recipient || !isValidEmail(recipient)) {
+        res.status(400);
+        return next(new Error('Valid email address is required'));
+      }
+      const template = posReceiptEmail(order, {
+        name: order.customerName || 'Customer',
+        email: recipient,
+        phone: order.customerPhone || '',
+      });
+      await sendEmail(recipient, template.subject, template.html);
+      res.json({ success: true, message: 'Email receipt sent' });
+    } else {
+      res.status(400);
+      return next(new Error('Invalid type. Must be sms or email'));
+    }
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   getPosProducts,
   getProductByBarcode,
   posCheckout,
   getPosOrders,
   getPosOrderById,
+  getPosOrderByInvoice,
   getActiveSession,
   startSession,
   endSession,
@@ -913,5 +1042,5 @@ module.exports = {
   getCreditOrders,
   settleCreditOrder,
   createQuotation,
+  sendReceipt,
 };
-

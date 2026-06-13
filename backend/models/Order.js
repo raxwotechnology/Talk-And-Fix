@@ -24,6 +24,7 @@ const orderSchema = mongoose.Schema(
         quantity: { type: Number, required: true },
         price: { type: Number, required: true },
         unitCostAtSale: { type: Number, default: 0 },
+        imei: [{ type: String }],
       },
     ],
     deliveryAddress: {
@@ -202,6 +203,26 @@ const orderSchema = mongoose.Schema(
     },
     creditNote: {
       type: String,
+    },
+    payments: [
+      {
+        method: { type: String, required: true },
+        amount: { type: Number, required: true },
+        accountId: { type: mongoose.Schema.Types.ObjectId, ref: 'Account' },
+        chequeDetails: {
+          number: String,
+          bank: String,
+          dueDate: Date,
+        },
+      },
+    ],
+    exchangeReturnId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'CustomerReturn',
+    },
+    exchangeCredit: {
+      type: Number,
+      default: 0,
     },
   },
   {

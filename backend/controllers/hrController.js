@@ -870,10 +870,25 @@ const adminCreateLeave = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// @desc    Delete employee
+// @route   DELETE /api/hr/employees/:id
+// @access  Private/Manager/Admin
+const deleteEmployee = async (req, res, next) => {
+  try {
+    const employee = await User.findById(req.params.id);
+    if (!employee) {
+      res.status(404);
+      return next(new Error('Employee not found'));
+    }
+    await employee.deleteOne();
+    res.json({ message: 'Employee deleted successfully' });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   checkIn, checkOut, getMyAttendance, getAttendanceReport,
   requestLeave, getMyLeaves, getStoreLeaves, approveLeave, rejectLeave,
-  getEmployees, addEmployee, updateEmployee,
+  getEmployees, addEmployee, updateEmployee, deleteEmployee,
   startBreak, endBreak, getBreakHistory, getActiveBreak,
   createTarget, getTargets, getMyTargets, updateTargetProgress, payTargetBonus,
   getEmployeePerformance,

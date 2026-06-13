@@ -16,7 +16,9 @@ const resolveStoreId = async (req, { bodyKey = 'storeId', queryKey = 'storeId' }
   }
   // Cashier / stockEmployee — use their assignedStore
   if (user.role === 'cashier' || user.role === 'stockEmployee') {
-    return user.assignedStore || null;
+    if (user.assignedStore) return user.assignedStore;
+    const store = await Store.findOne({ isActive: true }).select('_id').lean();
+    return store?._id || null;
   }
   // Admin — use body/query storeId
   return req.body?.[bodyKey] || req.query?.[queryKey] || null;
@@ -613,10 +615,26 @@ const searchGrnNumbers = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// @desc    Delete stock receipt (GRN)
+// @route   DELETE /api/stock/receipts/:id
+// @access  Private/Admin
+const deleteStockReceipt = async (req, res, next) => {
+  try {
+    const receipt = await StockReceipt.findById(req.params.id);
+    if (!receipt) {
+      res.status(404);
+      return next(new Error('GRN receipt not found'));
+    }
+    await receipt.deleteOne();
+    res.json({ message: 'GRN receipt deleted' });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   createStockReceipt,
   listStockReceipts,
   getReceiptByGRN,
+  deleteStockReceipt,
   getNextGrn,
   searchGrnNumbers,
   createSupplierReturn,

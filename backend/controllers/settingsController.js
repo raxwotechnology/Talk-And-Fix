@@ -55,6 +55,14 @@ const updateSettings = async (req, res) => {
       settings.receiptSettings = req.body.receiptSettings;
     }
 
+    if (req.body.documentTemplates) {
+      settings.documentTemplates = req.body.documentTemplates;
+    }
+
+    if (req.body.smsTemplates) {
+      settings.smsTemplates = req.body.smsTemplates;
+    }
+
     await settings.save();
     res.json(settings);
   } catch (err) {

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Landmark, Search, Calendar, Filter, CheckCircle2, XCircle, Clock, AlertCircle, FileText, Building } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Landmark, Search, Calendar, Filter, CheckCircle2, XCircle, Clock, AlertCircle, FileText, Building, Trash2 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { getCheques, updateChequeStatus, getStores } from '../../services/api';
+import { getCheques, updateChequeStatus, deleteTransaction, getStores } from '../../services/api';
 import { toast } from 'react-toastify';
 import { adminNavGroups as navItems } from './adminNavItems';
 import useAdminStoreStore from '../../store/adminStoreStore';
@@ -39,6 +39,17 @@ const AdminCheques = () => {
       fetchCheques();
     } catch (err) {
       toast.error('Failed to update cheque status');
+    }
+  };
+
+  const handleDeleteCheque = async (id) => {
+    if (!window.confirm('Are you sure you want to permanently delete this cheque record? This will also remove the linked financial transaction.')) return;
+    try {
+      await deleteTransaction(id);
+      toast.success('Cheque deleted successfully');
+      fetchCheques();
+    } catch (err) {
+      toast.error('Failed to delete cheque');
     }
   };
 
@@ -153,6 +164,13 @@ const AdminCheques = () => {
                         </td>
                         <td className="p-5 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleDeleteCheque(c._id)}
+                              className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                              title="Delete Cheque Record"
+                            >
+                              <Trash2 size={18} />
+                            </button>
                             {c.chequeDetails.status === 'Pending' && (
                               <>
                                 <button

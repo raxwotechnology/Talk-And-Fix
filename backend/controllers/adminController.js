@@ -138,18 +138,48 @@ const toggleStore = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-// @desc    Get all orders
-// @route   GET /api/admin/orders
 const getAllOrders = async (req, res, next) => {
   try {
-    const { startDate, endDate, storeId, status } = req.query;
+    const { startDate, endDate, storeId, status, category, brand, cashierId } = req.query;
     const filter = {};
     if (storeId) filter.storeId = storeId;
     if (status) filter.orderStatus = status;
+    if (cashierId) filter.cashierId = cashierId;
     if (startDate || endDate) {
       filter.createdAt = {};
       if (startDate) filter.createdAt.$gte = new Date(startDate);
       if (endDate) filter.createdAt.$lte = new Date(endDate);
+    }
+
+    // Combined category & brand filtering
+    if (category || brand) {
+      const Category = require('../models/Category');
+      const Product = require('../models/Product');
+      const productFilter = {};
+      if (brand && brand !== 'all') productFilter.brand = brand;
+      if (category && category !== 'all') {
+        if (category === 'mobiles') {
+          const categories = await Category.find({ name: /mobile|phone|tablet|smartphone/i });
+          const catIds = categories.map(c => c._id);
+          productFilter.$or = [
+            { categoryId: { $in: catIds } },
+            { ram: { $exists: true, $ne: '' } },
+            { storage: { $exists: true, $ne: '' } }
+          ];
+        } else if (category === 'accessories') {
+          const categories = await Category.find({ name: { $not: /mobile|phone|tablet|smartphone/i } });
+          const catIds = categories.map(c => c._id);
+          productFilter.categoryId = { $in: catIds };
+          productFilter.ram = { $exists: false };
+          productFilter.storage = { $exists: false };
+        } else {
+          productFilter.categoryId = category;
+        }
+      }
+
+      const products = await Product.find(productFilter).select('_id');
+      const matchingProductIds = products.map(p => p._id);
+      filter['items.productId'] = { $in: matchingProductIds };
     }
 
     const orders = await Order.find(filter)
@@ -242,6 +272,26 @@ const cancelOrder = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// @desc    Delete order
+// @route   DELETE /api/admin/orders/:id
+const deleteOrder = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) { res.status(404); return next(new Error('Order not found')); }
+
+    if (req.body?.restoreStock === true && order.orderStatus !== 'cancelled') {
+      for (const item of order.items || []) {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: Number(item.quantity || 0) },
+        });
+      }
+    }
+
+    await order.deleteOne();
+    res.json({ message: 'Order deleted successfully' });
+  } catch (error) { next(error); }
+};
+
 // @desc    Get platform stats
 // @route   GET /api/admin/stats
 const getStats = async (req, res, next) => {
@@ -281,6 +331,26 @@ const getStats = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const updateOrderAdmin = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      res.status(404);
+      return next(new Error('Order not found'));
+    }
+    const { customerName, customerPhone, orderStatus, paymentStatus } = req.body;
+    if (customerName !== undefined) order.customerName = customerName;
+    if (customerPhone !== undefined) order.customerPhone = customerPhone;
+    if (orderStatus !== undefined) order.orderStatus = orderStatus;
+    if (paymentStatus !== undefined) order.paymentStatus = paymentStatus;
+
+    const saved = await order.save();
+    res.json(saved);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getUsers,
   createUser,
@@ -294,5 +364,7 @@ module.exports = {
   getAllProducts,
   approveOrder,
   cancelOrder,
+  deleteOrder,
   getStats,
+  updateOrderAdmin,
 };

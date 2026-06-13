@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Search, X, Wallet, CreditCard, Landmark, ArrowUpRight, ArrowDownLeft, History, MoreVertical, TrendingUp, DollarSign } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { getAccounts, createAccount, updateAccount, getAccountTransactions, getStores } from '../../services/api';
+import { getAccounts, createAccount, updateAccount, deleteAccount, getAccountTransactions, getStores } from '../../services/api';
 
 import { toast } from 'react-toastify';
 import { adminNavGroups as navItems } from './adminNavItems';
@@ -90,6 +90,17 @@ const AdminAccounts = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to permanently delete this account?')) return;
+    try {
+      await deleteAccount(id);
+      toast.success('Account deleted successfully');
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to delete account');
+    }
+  };
+
   const fetchTransactions = async (account) => {
     setViewingTransactions(account);
     setTransLoading(true);
@@ -163,8 +174,9 @@ const AdminAccounts = () => {
                   {account.type === 'Cash' ? <Wallet size={24} /> : <Landmark size={24} />}
                 </div>
                 <div className="flex gap-1">
-                   <button onClick={() => fetchTransactions(account)} className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-primary-blue hover:bg-indigo-50 transition-all"><History size={16} /></button>
-                   <button onClick={() => openEdit(account)} className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-primary-blue hover:bg-indigo-50 transition-all"><Edit2 size={16} /></button>
+                   <button onClick={() => fetchTransactions(account)} className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-primary-blue hover:bg-indigo-50 transition-all" title="Ledger Transactions"><History size={16} /></button>
+                   <button onClick={() => openEdit(account)} className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-primary-blue hover:bg-indigo-50 transition-all" title="Edit Account"><Edit2 size={16} /></button>
+                   <button onClick={() => handleDelete(account._id)} className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-rose-600 hover:bg-red-50 transition-all" title="Delete Account"><Trash2 size={16} /></button>
                 </div>
               </div>
 

@@ -56,6 +56,8 @@ export const requestRegistrationOtp = (data) => API.post('/auth/register/request
 export const verifyRegistrationOtp = (data) => API.post('/auth/register/verify-otp', data);
 export const getMe = () => API.get('/auth/me');
 export const updateProfile = (data) => API.put('/auth/profile', data);
+export const getCashiers = () => API.get('/auth/cashiers');
+export const posLogin = (data) => API.post('/auth/pos-login', data);
 
 // Products
 export const getProducts = (params) => API.get('/products', { params });
@@ -129,6 +131,8 @@ export const getAdminOrders = (params) => API.get('/admin/orders', { params });
 export const getAdminProducts = (params) => API.get('/admin/products', { params });
 export const approveOrder = (id) => API.put(`/admin/orders/${id}/approve`);
 export const cancelOrder = (id, data) => API.put(`/admin/orders/${id}/cancel`, data);
+export const updateOrderAdmin = (id, data) => API.put(`/admin/orders/${id}`, data);
+export const deleteAdminOrder = (id, data) => API.delete(`/admin/orders/${id}`, { data });
 
 // POS (Cashier)
 export const getPosProducts = (params) => API.get('/pos/products', { params });
@@ -142,6 +146,7 @@ export const endPosSession = (data) => API.post('/pos/session/end', data);
 export const getCreditOrders = (params) => API.get('/pos/credit-orders', { params });
 export const settleCreditOrder = (id, data) => API.put(`/pos/credit-orders/${id}/settle`, data);
 export const createQuotation = (data) => API.post('/pos/quotation', data);
+export const getPosOrderByInvoice = (invoiceNumber) => API.get(`/pos/orders/invoice/${invoiceNumber}`);
 
 
 // Notifications
@@ -184,6 +189,7 @@ export const rejectLeave = (id, data) => API.put(`/hr/leaves/${id}/reject`, data
 export const getEmployees = (params) => API.get('/hr/employees', { params });
 export const addEmployee = (data) => API.post('/hr/employees', data);
 export const updateEmployee = (id, data) => API.put(`/hr/employees/${id}`, data);
+export const deleteEmployee = (id) => API.delete(`/hr/employees/${id}`);
 export const getStoreLeaves = (params) => API.get('/hr/leaves/store', { params });
 export const adminMarkAttendance = (data) => API.post('/hr/attendance/mark', data);
 export const adminCreateLeave = (data) => API.post('/hr/leaves/create-for-employee', data);
@@ -208,6 +214,7 @@ export const calculateSalary = (data) => API.post('/payroll/calculate', data);
 export const processSalaryPayment = (data) => API.post('/payroll/pay', data);
 export const getSalaryHistory = (employeeId) => API.get(`/payroll/history/${employeeId}`);
 export const getPayrollReport = (params) => API.get('/payroll/report', { params });
+export const downloadPaysheet = (id) => API.get(`/payroll/paysheet/${id}`, { responseType: 'blob' });
 export const exportSalaryHistory = (employeeId, params) =>
   API.get(`/payroll/history/${employeeId}/export`, { params, responseType: 'blob' });
 
@@ -234,6 +241,11 @@ export const updateTransaction = (id, data) => API.put(`/finance/transactions/${
 export const deleteTransaction = (id) => API.delete(`/finance/transactions/${id}`);
 export const getCheques = (params) => API.get('/finance/cheques', { params });
 export const updateChequeStatus = (id, data) => API.put(`/finance/cheques/${id}/status`, data);
+export const getPettyCashLog = (params) => API.get('/finance/petty-cash', { params });
+export const createPettyCashEntry = (data) => API.post('/finance/petty-cash', data);
+export const getTaxPayments = (params) => API.get('/finance/tax-payments', { params });
+export const createTaxPayment = (data) => API.post('/finance/tax-payments', data);
+export const getProfitReport = (params) => API.get('/finance/profit-report', { params });
 
 
 // Suppliers + Stock
@@ -245,6 +257,7 @@ export const deleteSupplier = (id) => API.delete(`/suppliers/${id}`);
 export const getStockReceipts = (params) => API.get('/stock/receipts', { params });
 export const createStockReceipt = (data) => API.post('/stock/receipts', data);
 export const getReceiptByGRN = (grnNumber) => API.get(`/stock/receipts/grn/${encodeURIComponent(grnNumber)}`);
+export const deleteStockReceipt = (id) => API.delete(`/stock/receipts/${id}`);
 export const getNextGrn = () => API.get('/stock/next-grn');
 export const searchGrnNumbers = (q) => API.get('/stock/grn-search', { params: { q } });
 export const getSupplierReturns = (params) => API.get('/stock/supplier-returns', { params });
@@ -309,6 +322,7 @@ export const getMyOvertime = (params) => API.get('/overtime/my', { params });
 export const getAccounts = (params) => API.get('/accounts', { params });
 export const createAccount = (data) => API.post('/accounts', data);
 export const updateAccount = (id, data) => API.put(`/accounts/${id}`, data);
+export const deleteAccount = (id) => API.delete(`/accounts/${id}`);
 export const getAccountTransactions = (id) => API.get(`/accounts/${id}/transactions`);
 
 // Hire Purchase
@@ -317,11 +331,13 @@ export const getHPById = (id) => API.get(`/hp/${id}`);
 export const recordHPPayment = (id, data) => API.post(`/hp/${id}/payments`, data);
 export const getCustomerHistory = (phone) => API.get(`/hp/customer/${phone}/history`);
 export const getAllCustomers = () => API.get('/hp/customers/all');
+export const deleteHPRecord = (id) => API.delete(`/hp/${id}`);
 
 // Reloads
 export const createReload = (data) => API.post('/reloads', data);
 export const getReloads = (params) => API.get('/reloads', { params });
 
-
+// Send receipt manually
+export const sendInvoiceReceipt = (id, data) => API.post(`/pos/orders/${id}/send-receipt`, data);
 
 export default API;

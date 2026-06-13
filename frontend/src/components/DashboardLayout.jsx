@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronRight, LogOut, Home } from 'lucide-react';
 import useAuthStore from '../store/authStore';
@@ -41,13 +41,30 @@ const NavLink = ({ item, location, collapsed, onNavigate }) => {
 
 // ─── Sidebar Content ───────────────────────────────────────────────────────────
 const SidebarContent = ({ navItems, collapsed, location, onNavigate }) => {
-  // Detect if navItems is a grouped array (array of { label, items })
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    if (navRef.current) {
+      const savedScrollTop = sessionStorage.getItem('sidebar-scroll-top');
+      if (savedScrollTop) {
+        navRef.current.scrollTop = Number(savedScrollTop);
+      }
+    }
+  }, []);
+
+  const handleScroll = (e) => {
+    sessionStorage.setItem('sidebar-scroll-top', e.target.scrollTop);
+  };
+
   const isGrouped = navItems.length > 0 && navItems[0]?.items;
 
   if (!isGrouped) {
-    // Legacy flat list
     return (
-      <nav className="p-3 space-y-0.5 flex-1 overflow-y-auto">
+      <nav
+        ref={navRef}
+        onScroll={handleScroll}
+        className="p-3 space-y-0.5 flex-1 overflow-y-auto"
+      >
         {navItems.map(item => (
           <NavLink key={item.path} item={item} location={location} collapsed={collapsed} onNavigate={onNavigate} />
         ))}
@@ -56,7 +73,11 @@ const SidebarContent = ({ navItems, collapsed, location, onNavigate }) => {
   }
 
   return (
-    <nav className="p-2 flex-1 overflow-y-auto">
+    <nav
+      ref={navRef}
+      onScroll={handleScroll}
+      className="p-2 flex-1 overflow-y-auto"
+    >
       {navItems.map((group, gi) => (
         <div key={gi} className="mb-1">
           {!collapsed && (
