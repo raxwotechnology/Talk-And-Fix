@@ -5,6 +5,7 @@ import { getAdminUsers, createUser, updateUser, toggleUserStatus, deleteUser, up
 import { toast } from 'react-toastify';
 import { adminNavGroups as navItems } from './adminNavItems';
 import useAdminStoreStore from '../../store/adminStoreStore';
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 
 const roleColors = {
   customer: 'bg-sky-100 text-sky-700',
@@ -114,10 +115,18 @@ const AdminUsers = () => {
     } catch (err) { toast.error('Failed to toggle status'); }
   };
 
-  const handleDelete = async (userId) => {
-    if (!window.confirm('Permanently delete this user? This cannot be undone.')) return;
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
+  const handleDeleteClick = (user) => {
+    setItemToDelete({ id: user._id, name: user.name });
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
     try {
-      await deleteUser(userId);
+      await deleteUser(itemToDelete.id);
       toast.success('User deleted');
       fetchUsers();
     } catch (err) { toast.error('Failed to delete user'); }
@@ -251,14 +260,22 @@ const AdminUsers = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <button onClick={() => handleToggleStatus(user._id, user.name, user.isActive !== false)} className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full transition-colors ${user.isActive !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                          {user.isActive !== false ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
-                          {user.isActive !== false ? 'Active' : 'Inactive'}
-                        </button>
+                        <select
+                          value={user.isActive !== false ? 'active' : 'inactive'}
+                          onChange={() => handleToggleStatus(user._id, user.name, user.isActive !== false)}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer ${
+                            user.isActive !== false 
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
+                              : 'bg-red-50 border-red-200 text-red-700'
+                          }`}
+                        >
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         <button onClick={() => handleOpenModal(user)} className="p-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors" title="View / Edit Details"><Eye size={16} /></button>
-                        <button onClick={() => handleDelete(user._id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" title="Delete"><Trash2 size={16} /></button>
+                        <button onClick={() => handleDeleteClick(user)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" title="Delete"><Trash2 size={16} /></button>
                       </td>
                     </tr>
                   ))}
@@ -386,6 +403,13 @@ const AdminUsers = () => {
         )}
 
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => { setDeleteModalOpen(false); setItemToDelete(null); }}
+        onConfirm={handleDeleteConfirm}
+        itemName={itemToDelete?.name}
+      />
     </DashboardLayout>
   );
 };

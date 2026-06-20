@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Store, ToggleLeft, ToggleRight, ExternalLink, Plus, X, Edit2 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { getAdminStores, toggleStoreStatus, createStore, updateStore } from '../../services/api';
+import { getAdminStoreSummaries, toggleStoreStatus, createStore, updateStore } from '../../services/api';
 import API from '../../services/api';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import { adminNavGroups as navItems } from './adminNavItems';
 import StockTransferModal from './StockTransferModal';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const emptyForm = { name: '', description: '', address: '', city: '', phone: '', email: '', bannerImage: '', logo: '', managerId: '' };
 
@@ -21,7 +22,7 @@ const AdminStores = () => {
   const [showTransferModal, setShowTransferModal] = useState(false);
 
   const fetchStores = async () => {
-    try { const { data } = await getAdminStores(); setStores(data); }
+    try { const { data } = await getAdminStoreSummaries(); setStores(data); }
     catch { toast.error('Failed to load stores'); }
     finally { setLoading(false); }
   };
@@ -80,16 +81,32 @@ const AdminStores = () => {
           {stores.map(store => (
             <div key={store._id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition-all ${store.isActive ? 'border-card-border' : 'border-red-200 opacity-75'}`}>
               <div className="h-28 bg-gradient-to-br from-emerald-400 to-teal-500 relative">
-                {store.bannerImage && <img src={store.bannerImage} alt="" className="w-full h-full object-cover" />}
+                {store.bannerImage && <img src={getImageUrl(store.bannerImage)} alt="" className="w-full h-full object-cover" />}
                 <span className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1 rounded-full ${store.isActive ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
                   {store.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
               <div className="p-5">
                 <div className="flex items-center gap-3 mb-3">
-                  {store.logo ? <img src={store.logo} alt="" className="w-10 h-10 rounded-xl object-cover" /> : <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center"><Store size={18} className="text-primary-blue" /></div>}
+                  {store.logo ? <img src={getImageUrl(store.logo)} alt="" className="w-10 h-10 rounded-xl object-cover" /> : <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center"><Store size={18} className="text-primary-blue" /></div>}
                   <div><h3 className="font-semibold text-dark-navy">{store.name}</h3><p className="text-xs text-muted-text">{store.city || 'No city'}</p></div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-2 mb-3 bg-gray-50 rounded-xl p-3 border border-gray-100">
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-text">Items in Stock</p>
+                    <p className="text-sm font-bold text-dark-navy">{(store.totalStock || 0).toLocaleString()} <span className="text-[10px] font-normal text-muted-text">({store.totalProducts || 0} unique)</span></p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-text">Stock Value</p>
+                    <p className="text-sm font-bold text-emerald-600">Rs. {(store.totalStockValue || 0).toLocaleString()}</p>
+                  </div>
+                  <div className="col-span-2 mt-1 pt-2 border-t border-gray-200">
+                    <p className="text-[10px] uppercase font-bold text-muted-text">Bank & Cash Assets</p>
+                    <p className="text-sm font-bold text-blue-600">Rs. {(store.totalAssets || 0).toLocaleString()}</p>
+                  </div>
+                </div>
+
                 <div className="text-xs text-muted-text space-y-1 mb-4">
                   <p><span className="font-medium text-dark-navy">Manager:</span> {store.managerId?.name || 'N/A'}</p>
                   <p><span className="font-medium text-dark-navy">Phone:</span> {store.phone || '—'}</p>

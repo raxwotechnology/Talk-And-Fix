@@ -52,7 +52,9 @@ const isRealEmailAddress = async (email) => {
       return { valid: false, reason: 'Email domain cannot receive email (no MX records found)' };
     }
   } catch (err) {
-    return { valid: false, reason: 'Email domain is not valid or has no mail server' };
+    // Log DNS lookup failures (e.g. timeout or blocked outbound ports in hosting container) 
+    // but proceed rather than blocking valid email registrations.
+    console.warn(`DNS MX check failed for domain "${domain}": ${err.message}. Proceeding anyway.`);
   }
 
   return { valid: true, normalizedEmail: normalized };

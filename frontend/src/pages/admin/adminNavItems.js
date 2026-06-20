@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, Store, Tag, ShoppingBag, Monitor,
   Ticket, BarChart3, DollarSign, Wallet, Package, Gift,
-  CreditCard, UserCog, RotateCcw, Barcode, TrendingUp, Brain,
+  CreditCard, UserCog, UsersRound, RotateCcw, Barcode, TrendingUp, Brain,
   Clock, Target, Settings, ChevronRight, Globe, History, Landmark, FileText, Smartphone,
 } from 'lucide-react';
 
@@ -19,7 +19,7 @@ const adminNavGroups = [
     label: 'User & Employee Management',
     items: [
       { path: '/admin/users',      label: 'Users',      icon: Users },
-      { path: '/admin/employees',  label: 'Employees',  icon: UserCog },
+      { path: '/admin/employees',  label: 'Employees',  icon: UsersRound },
       { path: '/admin/attendance', label: 'Attendance', icon: Clock },
       { path: '/admin/leaves',     label: 'Leaves',     icon: Clock },
       { path: '/admin/targets',    label: 'Targets',    icon: Target },
@@ -30,7 +30,7 @@ const adminNavGroups = [
     items: [
       { path: '/admin/stores',     label: 'Stores',     icon: Store },
       { path: '/admin/categories', label: 'Categories', icon: Tag },
-      { path: '/admin/products',   label: 'All Products', icon: Package },
+      { path: '/admin/products',   label: 'Products & Accessories', icon: Package },
       { path: '/admin/phones',     label: 'Mobile Phones', icon: Monitor },
       { path: '/admin/inventory',  label: 'Stock Report',  icon: Package },
     ],
@@ -78,11 +78,10 @@ const adminNavGroups = [
       { path: '/admin/hp',         label: 'Installments (HP)', icon: Clock },
       { path: '/admin/expenses',   label: 'Expenses & Income', icon: Wallet },
       { path: '/admin/financials', label: 'Financials',        icon: DollarSign },
+      { path: '/admin/profit-reports', label: 'Profit Reports', icon: TrendingUp },
       { path: '/admin/payroll',    label: 'Payroll',           icon: CreditCard },
       { path: '/admin/overtime',   label: 'Overtime Pay',      icon: Clock },
-
     ],
-
   },
   {
     label: 'Analytics & Reports',

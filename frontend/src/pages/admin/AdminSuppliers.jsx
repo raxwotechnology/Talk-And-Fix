@@ -4,6 +4,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { getSuppliers, createSupplier, updateSupplier, deleteSupplier, getStores } from '../../services/api';
 import { toast } from 'react-toastify';
 import { adminNavGroups as navItems } from './adminNavItems';
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 import useAdminStoreStore from '../../store/adminStoreStore';
 
 const emptyForm = {
@@ -93,10 +94,18 @@ const AdminSuppliers = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure? This will remove the supplier record.')) return;
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
+  const handleDeleteClick = (supplier) => {
+    setItemToDelete({ id: supplier._id, name: supplier.name });
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
     try {
-      await deleteSupplier(id);
+      await deleteSupplier(itemToDelete.id);
       toast.success('Supplier removed');
       fetchData();
     } catch (err) {
@@ -190,7 +199,7 @@ const AdminSuppliers = () => {
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => openEdit(supplier)} className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-primary-blue hover:bg-indigo-50 transition-all"><Edit2 size={16} /></button>
-                  <button onClick={() => handleDelete(supplier._id)} className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 size={16} /></button>
+                  <button onClick={() => handleDeleteClick(supplier)} className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"><Trash2 size={16} /></button>
                 </div>
               </div>
 
@@ -291,6 +300,13 @@ const AdminSuppliers = () => {
           </div>
         )}
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => { setDeleteModalOpen(false); setItemToDelete(null); }}
+        onConfirm={handleDeleteConfirm}
+        itemName={itemToDelete?.name}
+      />
     </DashboardLayout>
   );
 };

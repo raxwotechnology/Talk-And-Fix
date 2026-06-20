@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Package, ShoppingBag, Users, Clock,
+  LayoutDashboard, Package, ShoppingBag, Users, UsersRound, Clock,
   Calendar, Target, BarChart3, RotateCcw, Barcode,
   Wallet, Monitor, Globe, TrendingUp,
 } from 'lucide-react';
@@ -14,7 +14,7 @@ const managerNavGroups = [
   {
     label: 'Employee Management',
     items: [
-      { path: '/manager/employees',  label: 'Employees',  icon: Users },
+      { path: '/manager/employees',  label: 'Employees',  icon: UsersRound },
       { path: '/manager/attendance', label: 'Attendance', icon: Clock },
       { path: '/manager/leaves',     label: 'Leaves',     icon: Calendar },
       { path: '/manager/targets',    label: 'Targets',    icon: Target },

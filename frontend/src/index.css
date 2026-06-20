@@ -2147,6 +2147,22 @@ body {
   .pos-topbar-cashier-name {
     display: none;
   }
+
+  .pos-topbar {
+    height: auto;
+    min-height: 60px;
+    padding: 0.5rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .pos-topbar-right {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: flex-end;
+    flex: 1;
+    min-width: 200px;
+  }
 }
 
 /* ── Printing Styles ── */

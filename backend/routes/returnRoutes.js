@@ -15,8 +15,8 @@ const {
 router.use(protect);
 
 router.get('/orders/:id', authorize('manager', 'admin'), getReturnOrder);
-router.post('/customer', authorize('manager', 'admin', 'customer'), createCustomerReturn);
-router.get('/customer', authorize('manager', 'admin', 'customer'), listCustomerReturns);
+router.post('/customer', authorize('cashier', 'manager', 'admin', 'customer'), createCustomerReturn);
+router.get('/customer', authorize('cashier', 'manager', 'admin', 'customer'), listCustomerReturns);
 router.put('/customer/:id/manager-approve', authorize('manager'), managerApproveCustomerReturn);
 router.put('/customer/:id/manager-reject', authorize('manager'), managerRejectCustomerReturn);
 router.put('/customer/:id/approve', authorize('admin'), approveCustomerReturn);

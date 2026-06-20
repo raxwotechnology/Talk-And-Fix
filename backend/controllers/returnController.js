@@ -14,6 +14,11 @@ const resolveStoreId = async (req) => {
     const store = await Store.findOne({ managerId: req.user._id }).select('_id').lean();
     return store?._id || null;
   }
+  if (req.user.role === 'cashier' || req.user.role === 'stockEmployee') {
+    if (req.user.assignedStore) return req.user.assignedStore;
+    const store = await Store.findOne({ isActive: true }).select('_id').lean();
+    return store?._id || null;
+  }
   return req.body?.storeId || req.query?.storeId || null;
 };
 
@@ -228,6 +233,36 @@ const approveCustomerReturn = async (req, res, next) => {
     if (resolution === 'upgrade') {
       ret.upgradeAdditionalAmount = Number(upgradeAdditionalAmount || 0);
       ret.upgradePaymentMethod = upgradePaymentMethod || ret.upgradePaymentMethod;
+    }
+
+    // Record ledger income for remainder difference
+    const totalReturnValue = ret.items.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+    let creditedOrRefundedAmount = totalReturnValue;
+
+    if (resolution === 'store_credit') {
+      const settings = await Settings.findOne().lean();
+      const pointValue = settings?.loyaltyPointValue || 1;
+      creditedOrRefundedAmount = Number(storeCreditPoints || 0) * pointValue;
+    } else if (req.body.refundAmount !== undefined) {
+      creditedOrRefundedAmount = Number(req.body.refundAmount);
+    }
+
+    const remainder = totalReturnValue - creditedOrRefundedAmount;
+    if (remainder > 0) {
+      const { recordTransaction } = require('../services/ledgerService');
+      const Account = require('../models/Account');
+      const defaultAccount = await Account.findOne({ isDefault: true }).lean() || await Account.findOne().lean();
+
+      await recordTransaction({
+        storeId: ret.storeId || null,
+        accountId: defaultAccount?._id || undefined,
+        type: 'income',
+        category: 'Returns & Exchange',
+        amount: remainder,
+        paymentMethod: 'Cash',
+        description: `Unpaid remainder from return approval ${ret.holdBillNo || ret._id.toString().slice(-8)}. Return Value: Rs. ${totalReturnValue.toFixed(2)}, Refunded/Credited: Rs. ${creditedOrRefundedAmount.toFixed(2)}`,
+        createdBy: req.user._id,
+      });
     }
 
     ret.resolution = resolution;
