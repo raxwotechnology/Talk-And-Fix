@@ -254,7 +254,7 @@ const Checkout = () => {
 
   const initiatePayHere = (payData, order) => {
     const FRONTEND = window.location.origin;
-    const BACKEND = import.meta.env.VITE_API_URL || 'https://sr-mobile.onrender.com';
+    const BACKEND = import.meta.env.VITE_API_URL || 'https://talk-and-fix.onrender.com';
     const payment = {
       sandbox: payData.sandbox,
       merchant_id: payData.merchant_id,

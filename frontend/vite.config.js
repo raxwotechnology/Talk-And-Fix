@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://sr-mobile.onrender.com',
+        target: 'https://talk-and-fix.onrender.com',
         changeOrigin: true,
       },
     },

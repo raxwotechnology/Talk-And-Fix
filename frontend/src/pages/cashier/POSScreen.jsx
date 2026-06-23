@@ -717,7 +717,7 @@ const POSScreen = () => {
 
       // 3. Submit to PayHere
       const FRONTEND = window.location.origin;
-      const BACKEND = import.meta.env.VITE_API_URL || 'https://sr-mobile.onrender.com';
+      const BACKEND = import.meta.env.VITE_API_URL || 'https://talk-and-fix.onrender.com';
       const form = document.createElement('form');
       const isSandbox = payData.sandbox;
       form.method = 'POST';

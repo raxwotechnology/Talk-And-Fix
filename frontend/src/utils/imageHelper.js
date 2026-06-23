@@ -74,7 +74,7 @@ export const getImageUrl = (path) => {
   }
 
   // 4. Local path — prepend backend base URL
-  const apiUrl = import.meta.env.VITE_API_URL || 'https://sr-mobile.onrender.com';
+  const apiUrl = import.meta.env.VITE_API_URL || 'https://talk-and-fix.onrender.com';
   const backendBase = apiUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
   const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   return `${backendBase}${cleanPath}`;

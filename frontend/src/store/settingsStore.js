@@ -14,7 +14,7 @@ export const toAbsoluteUrl = (path) => {
     if (!path.startsWith('http')) return `https://${path}`;
     return path;
   }
-  const apiUrl = import.meta.env.VITE_API_URL || 'https://sr-mobile.onrender.com';
+  const apiUrl = import.meta.env.VITE_API_URL || 'https://talk-and-fix.onrender.com';
   const backendBase = apiUrl.replace(/\/api\/?$/, '');
   // Ensure path starts with /
   const p = path.startsWith('/') ? path : `/${path}`;
