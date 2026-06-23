@@ -14,7 +14,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login, user, isAuthenticated, logout } = useAuthStore();
   const settings = useSettingsStore((s) => s.settings);
-  const brandName = settings?.shopName || 'Mobile Hub';
+  const brandName = settings?.shopName || 'Talk N Fix';
   const brandLogoUrl = settings?.logoUrl;
   const navigate = useNavigate();
 

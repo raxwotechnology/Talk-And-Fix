@@ -253,8 +253,8 @@ const Checkout = () => {
   };
 
   const initiatePayHere = (payData, order) => {
-    const FRONTEND = 'https://smart.mobilehub.lk';
-    const BACKEND = 'https://mobilehub.mobilehub.lk';
+    const FRONTEND = window.location.origin;
+    const BACKEND = import.meta.env.VITE_API_URL || 'https://sr-mobile.onrender.com';
     const payment = {
       sandbox: payData.sandbox,
       merchant_id: payData.merchant_id,

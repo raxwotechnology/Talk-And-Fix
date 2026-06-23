@@ -193,7 +193,7 @@ const OrderConfirmation = () => {
           const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a'); a.href = url;
-          a.download = `Mobile Hub_Bill_${order._id.slice(-8).toUpperCase()}.txt`;
+          a.download = `Talk N Fix_Bill_${order._id.slice(-8).toUpperCase()}.txt`;
           a.click(); URL.revokeObjectURL(url);
         }} className="bg-blue-500 text-white font-semibold py-3 px-8 rounded-full hover:bg-blue-600 transition-all shadow-lg flex items-center gap-2">
           <Download size={18} /> Download Bill

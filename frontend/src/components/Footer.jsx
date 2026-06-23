@@ -6,10 +6,10 @@ import useAuthStore from '../store/authStore';
 const Footer = () => {
   const user = useAuthStore((s) => s.user);
   const settings = useSettingsStore((s) => s.settings);
-  const brandName = settings?.shopName || 'Mobile Hub';
-  const footerText = settings?.footerText || `© ${new Date().getFullYear()} Mobile Hub. All rights reserved.`;
-  const brandEmail = settings?.email || 'support@mobilehub.com';
-  const brandPhone = settings?.phone || '+94 11 255 5000';
+  const brandName = settings?.shopName || 'Talk N Fix';
+  const footerText = settings?.footerText || `© ${new Date().getFullYear()} Talk N Fix. All rights reserved.`;
+  const brandEmail = settings?.email || 'Talknfix000@gmail.com';
+  const brandPhone = settings?.phone || '0768445595';
   const brandAddress = settings?.address || '88 Tech Avenue, Colombo 03';
   const brandLogoUrl = settings?.logoUrl;
 

@@ -61,9 +61,9 @@ const Navbar = () => {
   const fetchCart = useCartStore((s) => s.fetchCart);
   const { currency, toggleCurrency, fetchRate, getProductPrice } = useCurrencyStore();
   const settings = useSettingsStore((s) => s.settings);
-  const brandName = settings?.shopName || 'Mobile Hub';
+  const brandName = settings?.shopName || 'Talk N Fix';
   const brandLogoUrl = getImageUrl(settings?.logoUrl);
-  const brandPhone = settings?.phone || '+94 11 255 5000';
+  const brandPhone = settings?.phone || '0768445595';
   const freeDeliveryThreshold = Number(settings?.deliveryFeeThreshold || 5000).toLocaleString();
 
   useEffect(() => {

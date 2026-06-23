@@ -28,11 +28,11 @@ const bootstrapUsers = async () => {
 
     // Create admin
     const admin = await User.create({
-      name: 'Mobile Hub Admin',
-      email: 'admin@mobilehub.com',
+      name: 'Talk N Fix Admin',
+      email: 'rkdnmadu1993@gmail.com',
       password: await bcrypt.hash('admin123', salt),
       role: 'admin',
-      phone: '+94771234567',
+      phone: '0768445595',
       isActive: true,
     });
     console.log('✅ Admin created:', admin.email);
@@ -100,7 +100,7 @@ const bootstrapUsers = async () => {
     console.log('  BOOTSTRAP COMPLETE - User Accounts');
     console.log('═══════════════════════════════════════════');
     console.log('');
-    console.log('  Admin:     admin@mobilehub.com / admin123');
+    console.log('  Admin:     rkdnmadu1993@gmail.com / admin123');
     console.log('  Manager:   manager@mobilehub.com / manager123');
     console.log('  Manager 2: manager2@mobilehub.com / manager123');
     console.log('  Cashier:   cashier@mobilehub.com / cashier123');

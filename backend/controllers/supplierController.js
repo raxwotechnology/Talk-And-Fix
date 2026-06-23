@@ -15,7 +15,7 @@ const resolveStoreId = async (req) => {
 const listSuppliers = async (req, res, next) => {
   try {
     const storeId = await resolveStoreId(req);
-    const isSuper = req.user.email === 'admin@mobilehub.com' || req.user.isSuperAdmin;
+    const isSuper = req.user.email === 'rkdnmadu1993@gmail.com' || req.user.isSuperAdmin;
     const isAdmin = req.user.role === 'admin';
 
     if (!storeId && !isSuper && !isAdmin) {

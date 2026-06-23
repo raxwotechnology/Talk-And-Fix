@@ -290,7 +290,7 @@ const ProductDetail = () => {
                   { label: 'SKU / Barcode', value: product.barcode || product.sku || 'N/A' },
                   { label: 'Unit Type', value: product.unit },
                   { label: 'Stock Status', value: inStock ? 'Available' : 'Out of Stock' },
-                  { label: 'Seller', value: product.storeId?.name || 'Mobile Hub Direct' },
+                  { label: 'Seller', value: product.storeId?.name || 'Talk N Fix Direct' },
                 ].map((d) => (
                   <div key={d.label} className="flex py-3 border-b border-slate-100 last:border-0">
                     <span className="w-1/3 text-slate-500 font-medium">{d.label}</span>

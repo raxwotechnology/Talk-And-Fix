@@ -157,7 +157,7 @@ const AdminSettings = () => {
     }
   };
 
-  if (loading) return <DashboardLayout navItems={navItems} title="Mobile Hub Admin Panel"><div className="flex items-center justify-center h-64"><div className="w-10 h-10 border-4 border-primary-blue border-t-transparent rounded-full animate-spin" /></div></DashboardLayout>;
+  if (loading) return <DashboardLayout navItems={navItems} title="Talk N Fix Admin Panel"><div className="flex items-center justify-center h-64"><div className="w-10 h-10 border-4 border-primary-blue border-t-transparent rounded-full animate-spin" /></div></DashboardLayout>;
 
   const tabs = [
     { key: 'general', label: 'General', icon: Globe },
@@ -172,7 +172,7 @@ const AdminSettings = () => {
   ];
 
   return (
-    <DashboardLayout navItems={navItems} title="Mobile Hub Admin Panel">
+    <DashboardLayout navItems={navItems} title="Talk N Fix Admin Panel">
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -218,7 +218,7 @@ const AdminSettings = () => {
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
-                <SettingsInputField label="Shop Name" value={settings.shopName} onChange={(v) => handleChange('shopName', v)} placeholder="Mobile Hub" />
+                <SettingsInputField label="Shop Name" value={settings.shopName} onChange={(v) => handleChange('shopName', v)} placeholder="Talk N Fix" />
                 <SettingsInputField label="Tagline" value={settings.tagline} onChange={(v) => handleChange('tagline', v)} placeholder="Where style meets accessories" />
               </div>
             </div>
@@ -226,7 +226,7 @@ const AdminSettings = () => {
             {/* Footer */}
             <div className="bg-white rounded-2xl border border-card-border p-6 shadow-sm">
               <h2 className="font-semibold text-dark-navy mb-4">Footer</h2>
-              <SettingsInputField label="Footer Text" value={settings.footerText} onChange={(v) => handleChange('footerText', v)} placeholder="© 2026 Mobile Hub. All rights reserved." />
+              <SettingsInputField label="Footer Text" value={settings.footerText} onChange={(v) => handleChange('footerText', v)} placeholder="© 2026 Talk N Fix. All rights reserved." />
             </div>
 
             {/* Hero Products */}
@@ -360,7 +360,7 @@ const AdminSettings = () => {
                     label="Header Logo / Title Text"
                     value={settings.receiptSettings?.headerTitle || settings.shopName}
                     onChange={(v) => handleChange('receiptSettings', { ...settings.receiptSettings, headerTitle: v })}
-                    placeholder="e.g. Mobile Hub Corner"
+                    placeholder="e.g. Talk N Fix Corner"
                   />
 
                   {/* Subtitle / Branch details */}
@@ -407,7 +407,7 @@ const AdminSettings = () => {
                     label="Letterhead Header Text (A4 Invoice)"
                     value={settings.letterheadHeader}
                     onChange={(v) => handleChange('letterheadHeader', v)}
-                    placeholder="e.g. SMART MOBILE HUB (PVT) LTD\nNo. 12, Galle Road, Colombo\nReg: PV-12345"
+                    placeholder="e.g. TALK N FIX (PVT) LTD\nNo. 12, Galle Road, Colombo\nReg: PV-12345"
                   />
 
                   {/* Letterhead Footer Textarea */}
@@ -415,9 +415,8 @@ const AdminSettings = () => {
                     label="Letterhead Footer Text (A4 Invoice)"
                     value={settings.letterheadFooter}
                     onChange={(v) => handleChange('letterheadFooter', v)}
-                    placeholder="e.g. Thank you for shopping with us!\nContact: info@smartmobile.lk | Web: smartmobile.lk"
+                    placeholder="e.g. Thank you for shopping with us!\nContact: Talknfix000@gmail.com | Web: max-durakathana.netlify.app"
                   />
-
                   {/* Default Printer Selection */}
                   <div>
                     <label className="text-xs font-semibold text-muted-text block mb-1">Default Local Printer Assignment</label>

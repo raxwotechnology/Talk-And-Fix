@@ -497,7 +497,6 @@ const AdminHP = () => {
           </div>
         </div>
       )}
-
       <DeleteConfirmationModal
         isOpen={deleteModalOpen}
         onClose={() => { setDeleteModalOpen(false); setItemToDelete(null); }}

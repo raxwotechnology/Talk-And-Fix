@@ -48,7 +48,7 @@ const POSScreen = () => {
   const navigate = useNavigate();
   const { user, login, logout } = useAuthStore();
   const settings = useSettingsStore((s) => s.settings);
-  const brandName = settings?.shopName || 'Mobile Hub';
+  const brandName = settings?.shopName || 'Talk N Fix';
   const pos = usePosStore();
 
   const [products, setProducts] = useState([]);
@@ -564,7 +564,6 @@ const POSScreen = () => {
           return;
         }
       }
-
       if (!isCredit) {
         const cashRow = payments.find(p => p.method === 'cash');
         if (cashRow && totalPaid > grandTotal) {
@@ -605,7 +604,7 @@ const POSScreen = () => {
           image: item.image,
           quantity: item.quantity,
           price: item.price,
-          imei: item.imei || [], // Pass scanned IMEIs
+          imei: item.imei || [],
         })),
         payments: checkoutPayments,
         paymentMethod: isHP ? 'hire_purchase' : (payments[0]?.method || 'cash'),
@@ -717,8 +716,8 @@ const POSScreen = () => {
       const { data: payData } = await getPosPayHereHash({ orderId: order._id, amount: order.totalAmount });
 
       // 3. Submit to PayHere
-      const FRONTEND = 'https://smart.mobilehub.lk';
-      const BACKEND = 'https://mobilehub.mobilehub.lk';
+      const FRONTEND = window.location.origin;
+      const BACKEND = import.meta.env.VITE_API_URL || 'https://sr-mobile.onrender.com';
       const form = document.createElement('form');
       const isSandbox = payData.sandbox;
       form.method = 'POST';
@@ -738,7 +737,7 @@ const POSScreen = () => {
         hash: payData.hash,
         first_name: user?.name?.split(' ')[0] || 'Walk-in',
         last_name: user?.name?.split(' ').slice(1).join(' ') || 'Customer',
-        email: order.receiptEmail || user?.email || 'noreply@mobilehub.lk',
+        email: order.receiptEmail || user?.email || 'Talknfix000@gmail.com',
         phone: order.customerPhone || user?.phone || '0000000000',
         address: 'Walk-in Store',
         city: 'Colombo',
@@ -2110,7 +2109,7 @@ const POSScreen = () => {
                                 }}
                                 style={{ border: 'none', background: 'none', color: '#ef4444', padding: '6px', cursor: 'pointer' }}
                               >
-                                <Trash2 size={16} />
+                                  <Trash2 size={16} />
                               </button>
                             )}
                           </div>

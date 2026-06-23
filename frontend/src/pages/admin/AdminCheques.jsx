@@ -129,7 +129,6 @@ const AdminCheques = () => {
       setSaving(false);
     }
   };
-
   const getStatusColor = (status) => {
     switch (status) {
       case 'Cleared': return 'bg-green-100 text-green-700 border-green-200';

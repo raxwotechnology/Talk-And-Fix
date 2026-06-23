@@ -110,7 +110,7 @@ const adminNavGroups = [
 export const getAdminNavGroups = (user) => {
   if (!user) return adminNavGroups;
 
-  const isSuperAdmin = user.email === 'admin@mobilehub.com' || user.isSuperAdmin;
+  const isSuperAdmin = user.email === 'rkdnmadu1993@gmail.com' || user.isSuperAdmin;
   const p = user.permissions || {};
 
   // If super admin, return everything

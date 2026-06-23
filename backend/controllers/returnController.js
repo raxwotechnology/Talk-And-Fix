@@ -426,7 +426,7 @@ const exportCustomerReturnsPdf = async (req, res, next) => {
     res.setHeader('Content-Disposition', 'attachment; filename="customer-returns-report.pdf"');
     doc.pipe(res);
 
-    const companyName = settings?.shopName || 'Mobile Hub';
+    const companyName = settings?.shopName || 'Talk N Fix';
     const logoPath = settings?.logo ? path.join(__dirname, '..', settings.logo.replace(/^\//, '')) : null;
     if (logoPath) {
       try { doc.image(logoPath, 40, 34, { width: 50 }); } catch (err) { /* ignore missing logo */ }

@@ -36,13 +36,13 @@ const seedData = async () => {
     // Create Stores
     const store1 = await Store.create({
       managerId: manager1._id,
-      name: 'Mobile Hub',
-      slug: 'mobile-hub',
+      name: 'Talk N Fix',
+      slug: 'talk-n-fix',
       description: 'Premium destination for the latest smartphones, tablets, and high-end tech accessories.',
       address: '123 Tech Avenue, Colombo 03',
       city: 'Colombo',
-      phone: '+94112555101',
-      email: 'hello@mobilehub.com',
+      phone: '0768445595',
+      email: 'Talknfix000@gmail.com',
       bannerImage: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1200',
       logo: 'https://images.unsplash.com/photo-1541560052-5e137f229371?w=200',
       operatingHours: { open: '09:00', close: '20:00' },

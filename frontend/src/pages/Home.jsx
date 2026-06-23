@@ -67,7 +67,7 @@ const Home = () => {
             <div className="mb-3">
               <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Welcome to</p>
               <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent leading-tight">
-                {settings?.shopName || 'Mobile Hub'}
+                {settings?.shopName || 'Talk N Fix'}
               </h2>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6 mt-0">
@@ -283,7 +283,7 @@ const Home = () => {
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
           <div className="z-10 mb-6 md:mb-0">
-            <h3 className="text-2xl md:text-3xl font-bold mt-0 mb-2">Download the Mobile Hub App</h3>
+            <h3 className="text-2xl md:text-3xl font-bold mt-0 mb-2">Download the Talk N Fix App</h3>
             <p className="text-blue-100 m-0 max-w-md">
               Unlock exclusive device drops, personalized tech recommendations, and faster checkout from your phone.
             </p>

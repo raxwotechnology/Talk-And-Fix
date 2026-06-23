@@ -15,7 +15,7 @@ const CashierLogin = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
   const settings = useSettingsStore((s) => s.settings);
-  const brandName = settings?.shopName || 'Mobile Hub';
+  const brandName = settings?.shopName || 'Talk N Fix';
   const brandLogoUrl = settings?.logoUrl;
 
   const handleSubmit = async (e) => {

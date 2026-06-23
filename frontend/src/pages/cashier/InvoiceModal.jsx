@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 
 const InvoiceModal = ({ isOpen, onClose, order, onNewSale }) => {
   const settings = useSettingsStore((s) => s.settings);
-  const brandName = settings?.shopName || 'Mobile Hub';
+  const brandName = settings?.shopName || 'Talk N Fix';
   const brandAddress = settings?.address || '';
   const brandPhone = settings?.phone || '';
   const brandEmail = settings?.email || '';
@@ -304,7 +304,6 @@ const InvoiceModal = ({ isOpen, onClose, order, onNewSale }) => {
                   </div>
                 </div>
               </div>
-
               {/* Footer Terms, Letterhead & Seal */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '30px', borderTop: '1px solid #cbd5e1', paddingTop: '16px' }}>
                 <div style={{ width: '65%', fontSize: '10px', color: '#64748b', textAlign: 'left' }}>
@@ -531,11 +530,9 @@ const InvoiceModal = ({ isOpen, onClose, order, onNewSale }) => {
               {/* Barcode */}
               <div style={{ textAlign: 'center', margin: '10px 0 6px', borderTop: '1px dashed #999', paddingTop: '8px' }}>
                 {showBarcode && <svg ref={barcodeRef} style={{ maxWidth: '200px', display: 'block', margin: '0 auto' }}></svg>}
-                
                 {(settings?.sealUrl || settings?.seal) && (
                   <img src={getImageUrl(settings.sealUrl || settings.seal)} alt="Seal" style={{ width: '48px', height: '48px', objectFit: 'contain', margin: '6px auto', display: 'block', opacity: 0.8 }} />
                 )}
-
                 {(documentTemplate.footerText || settings?.receiptSettings?.footerMessage) && (
                   <p style={{ fontSize: '10px', color: '#111', fontWeight: 700, margin: '8px 0 0' }}>
                     {documentTemplate.footerText || settings.receiptSettings.footerMessage}

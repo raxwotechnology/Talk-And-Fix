@@ -27,6 +27,8 @@ const allowedOrigins = [
   'https://www.mobilehubtech.netlify.app',
   'https://max-durakathana.netlify.app',
   'https://www.max-durakathana.netlify.app',
+  'https://srmobile.netlify.app',
+  'https://www.srmobile.netlify.app',
   'http://localhost:3000',
   ...envOrigins,
 ];
@@ -89,7 +91,7 @@ app.use('/api/reloads', require('./routes/reloadRoutes'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
-  res.send('Mobile Hub API is running...');
+  res.send('Talk N Fix API is running...');
 });
 
 app.use((err, req, res, next) => {

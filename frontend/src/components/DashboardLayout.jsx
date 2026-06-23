@@ -130,7 +130,7 @@ const DashboardLayout = ({ children, navItems, title }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const brandName = settings?.shopName || 'Mobile Hub';
+  const brandName = settings?.shopName || 'Talk N Fix';
   // Use whichever logo field is populated (logoUrl is built by settingsStore from logo path)
   const logoSrc = getImageUrl(settings?.logoUrl || settings?.logo || '');
 

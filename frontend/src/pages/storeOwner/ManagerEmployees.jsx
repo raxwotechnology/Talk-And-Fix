@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Search, Edit3, Save, X, UserPlus, Clock, Calendar, CheckCircle, Trash2 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { getEmployees, addEmployee, updateEmployee, deleteEmployee } from '../../services/api';
+import { getEmployees, addEmployee, updateEmployee, deleteEmployee, adminMarkAttendance, adminCreateLeave, getAttendanceReport, getStoreLeaves } from '../../services/api';
 import { toast } from 'react-toastify';
 import { managerNavGroups } from './managerNavItems';
 import useAuthStore from '../../store/authStore';

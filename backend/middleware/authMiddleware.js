@@ -44,7 +44,7 @@ const authorize = (...roles) => {
 const requirePermission = (permission) => {
   return (req, res, next) => {
     // Super Admin bypass
-    if (req.user.email === 'admin@mobilehub.com' || req.user.isSuperAdmin) {
+    if (req.user.email === 'rkdnmadu1993@gmail.com' || req.user.isSuperAdmin) {
       return next();
     }
 

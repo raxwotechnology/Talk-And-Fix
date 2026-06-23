@@ -115,7 +115,7 @@ const OrdersPage = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Mobile Hub_Receipt_${order._id.slice(-8).toUpperCase()}.txt`;
+    a.download = `Talk N Fix_Receipt_${order._id.slice(-8).toUpperCase()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };

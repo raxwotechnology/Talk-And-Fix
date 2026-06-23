@@ -5,13 +5,18 @@ require('dotenv').config();
 mongoose.connect(process.env.MONGO_URI).then(async () => {
   const passwordHash = await bcrypt.hash('admin123', 10);
   const result = await mongoose.connection.db.collection('users').updateOne(
-    { email: 'admin@mobilehub.com' },
-    { $set: { password: passwordHash } }
+    { role: 'admin' },
+    { 
+      $set: { 
+        name: 'Talk N Fix Admin',
+        email: 'rkdnmadu1993@gmail.com',
+        phone: '0768445595',
+        password: passwordHash,
+        isActive: true
+      } 
+    },
+    { upsert: true }
   );
-  if (result.modifiedCount > 0) {
-    console.log('Admin password successfully reset to: admin123');
-  } else {
-    console.log('Admin user not found or password was already admin123');
-  }
+  console.log('Admin user successfully reset/updated in DB.');
   process.exit();
 });

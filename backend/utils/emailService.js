@@ -28,7 +28,7 @@ const sendEmail = async (to, subject, html) => {
     const transporter = createTransporter();
 
     const info = await transporter.sendMail({
-      from: `"Mobile Hub" <${process.env.EMAIL_FROM}>`,
+      from: `"Talk N Fix" <${process.env.EMAIL_FROM}>`,
       to,
       subject,
       html,
@@ -57,11 +57,11 @@ const orderConfirmationEmail = (order, customerName) => {
     .join('');
 
   return {
-    subject: `Mobile Hub — Order Confirmed #${order._id.toString().slice(-8).toUpperCase()}`,
+    subject: `Talk N Fix — Order Confirmed #${order._id.toString().slice(-8).toUpperCase()}`,
     html: `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8faf8;">
         <div style="background: linear-gradient(135deg, #059669, #10b981); padding: 30px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">💄 Mobile Hub</h1>
+          <h1 style="color: white; margin: 0; font-size: 28px;">🔧 Talk N Fix</h1>
           <p style="color: #d1fae5; margin: 5px 0 0;">Order Confirmation</p>
         </div>
         <div style="padding: 30px; background: white;">
@@ -87,7 +87,7 @@ const orderConfirmationEmail = (order, customerName) => {
           <p style="color: #64748b; font-size: 13px; margin-top: 20px;">Payment Method: <strong>${order.paymentMethod.toUpperCase()}</strong></p>
         </div>
         <div style="background: #f1f5f9; padding: 20px; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} Mobile Hub. Premium tech and smart devices delivered with care.</p>
+          <p style="color: #94a3b8; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} Talk N Fix. Premium tech and smart devices delivered with care.</p>
         </div>
       </div>
     `,
@@ -95,7 +95,7 @@ const orderConfirmationEmail = (order, customerName) => {
 };
 
 const deliveryAssignmentEmail = (order, deliveryGuyName) => ({
-  subject: `Mobile Hub — New Delivery Assignment #${order._id.toString().slice(-8).toUpperCase()}`,
+  subject: `Talk N Fix — New Delivery Assignment #${order._id.toString().slice(-8).toUpperCase()}`,
   html: `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background: linear-gradient(135deg, #2563eb, #3b82f6); padding: 30px; text-align: center;">
@@ -115,7 +115,7 @@ const deliveryAssignmentEmail = (order, deliveryGuyName) => ({
 });
 
 const salaryPaidEmail = (employeeName, payroll) => ({
-  subject: `Mobile Hub — Salary Credited for ${payroll.month}/${payroll.year}`,
+  subject: `Talk N Fix — Salary Credited for ${payroll.month}/${payroll.year}`,
   html: `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background: linear-gradient(135deg, #059669, #10b981); padding: 30px; text-align: center;">
@@ -137,16 +137,16 @@ const salaryPaidEmail = (employeeName, payroll) => ({
 });
 
 const welcomeEmail = (name) => ({
-  subject: 'Welcome to Mobile Hub! ✨',
+  subject: 'Welcome to Talk N Fix! ✨',
   html: `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background: linear-gradient(135deg, #059669, #10b981); padding: 40px; text-align: center;">
-        <h1 style="color: white; margin: 0; font-size: 32px;">💄 Mobile Hub</h1>
+        <h1 style="color: white; margin: 0; font-size: 32px;">🔧 Talk N Fix</h1>
         <p style="color: #d1fae5; margin: 10px 0 0; font-size: 16px;">Premium tech and smart devices, delivered with care</p>
       </div>
       <div style="padding: 30px; background: white;">
         <h2 style="color: #1e293b; margin-top: 0;">Welcome, ${name}! 🎉</h2>
-        <p style="color: #64748b; line-height: 1.6;">Thank you for joining Mobile Hub! Explore our curated range of tech, gadgets, accessories, and smart essentials.</p>
+        <p style="color: #64748b; line-height: 1.6;">Thank you for joining Talk N Fix! Explore our curated range of tech, gadgets, accessories, and smart essentials.</p>
         <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
           <p style="margin: 0; font-size: 14px; color: #64748b;">Use code</p>
           <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #059669;">WELCOME10</p>
@@ -174,12 +174,12 @@ const paymentReceiptEmail = (order, customerName) => {
   const paidDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   return {
-    subject: `Mobile Hub — Payment Receipt #${orderId}`,
+    subject: `Talk N Fix — Payment Receipt #${orderId}`,
     html: `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #059669, #0d9488); padding: 35px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px; letter-spacing: -0.5px;">💄 Mobile Hub</h1>
+          <h1 style="color: white; margin: 0; font-size: 28px; letter-spacing: -0.5px;">🔧 Talk N Fix</h1>
           <p style="color: #d1fae5; margin: 8px 0 0; font-size: 14px;">Payment Receipt</p>
         </div>
 
@@ -250,8 +250,8 @@ const paymentReceiptEmail = (order, customerName) => {
 
         <!-- Footer -->
         <div style="background: #f1f5f9; padding: 20px; text-align: center;">
-          <p style="color: #64748b; font-size: 13px; margin: 0 0 5px;">Thank you for shopping with Mobile Hub! ✨</p>
-          <p style="color: #94a3b8; font-size: 11px; margin: 0;">© ${new Date().getFullYear()} Mobile Hub. Premium tech and smart devices delivered with care.</p>
+          <p style="color: #64748b; font-size: 13px; margin: 0 0 5px;">Thank you for shopping with Talk N Fix! ✨</p>
+          <p style="color: #94a3b8; font-size: 11px; margin: 0;">© ${new Date().getFullYear()} Talk N Fix. Premium tech and smart devices delivered with care.</p>
         </div>
       </div>
     `,
@@ -277,7 +277,7 @@ const posReceiptEmail = (order, customer = {}) => {
     subject: `Receipt #${order._id.toString().slice(-8).toUpperCase()}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:650px;margin:0 auto;">
-        <h2 style="color:#059669;">Mobile Hub POS Receipt</h2>
+        <h2 style="color:#059669;">Talk N Fix POS Receipt</h2>
         <p><strong>Receipt ID:</strong> #${order._id.toString().slice(-8).toUpperCase()}</p>
         <p><strong>Date:</strong> ${new Date(order.createdAt || Date.now()).toLocaleString()}</p>
         <h3>Customer Details</h3>
@@ -329,7 +329,7 @@ const customerReturnUpdateEmail = ({ order, returnDoc }) => {
       : 'Your return is on hold while we complete the exchange/upgrade process.';
 
   return {
-    subject: `Mobile Hub — Return Update ${rma}`,
+    subject: `Talk N Fix — Return Update ${rma}`,
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:650px;margin:0 auto;background:#ffffff;">
         <div style="background:linear-gradient(135deg,#059669,#10b981);padding:28px;text-align:center;">

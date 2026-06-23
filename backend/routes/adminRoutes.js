@@ -51,7 +51,7 @@ router.delete('/orders/:id', requirePermission('sales'), deleteOrder);
 
 // Products (requires 'products' or 'suppliers' permission for GRN)
 router.get('/products', (req, res, next) => {
-  if (req.user.email === 'admin@mobilehub.com' || req.user.isSuperAdmin) return next();
+  if (req.user.email === 'rkdnmadu1993@gmail.com' || req.user.isSuperAdmin) return next();
   if (req.user.permissions && (req.user.permissions.products || req.user.permissions.suppliers)) return next();
   res.status(403);
   return next(new Error('Access denied. You need products or suppliers permission.'));

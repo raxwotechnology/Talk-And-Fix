@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const settingsSchema = new mongoose.Schema({
-  shopName: { type: String, default: 'Mobile Hub' },
+  shopName: { type: String, default: 'Talk N Fix' },
   tagline: { type: String, default: 'Where style meets accessories' },
   logo: { type: String, default: '' },
   logoUrl: { type: String, default: '' },
@@ -9,8 +9,8 @@ const settingsSchema = new mongoose.Schema({
   sealUrl: { type: String, default: '' },
   letterheadHeader: { type: String, default: '' },
   letterheadFooter: { type: String, default: '' },
-  email: { type: String, default: 'hello@mobilehub.com' },
-  phone: { type: String, default: '+94 11 255 5000' },
+  email: { type: String, default: 'Talknfix000@gmail.com' },
+  phone: { type: String, default: '0768445595' },
   phone2: { type: String, default: '' },
   address: { type: String, default: '88 tech Avenue, Colombo 03, Sri Lanka' },
   city: { type: String, default: 'Colombo' },
@@ -29,7 +29,7 @@ const settingsSchema = new mongoose.Schema({
     instagram: { type: String, default: '' },
     twitter: { type: String, default: '' },
   },
-  footerText: { type: String, default: '© 2026 Mobile Hub. All rights reserved.' },
+  footerText: { type: String, default: '© 2026 Talk N Fix. All rights reserved.' },
   heroProducts: [{
     name: { type: String },
     price: { type: Number },
@@ -60,7 +60,7 @@ const settingsSchema = new mongoose.Schema({
     showWarranty: { type: Boolean, default: true },
     layoutStyle: { type: String, default: 'receipt' }, // 'receipt' | 'a4'
     themeColor: { type: String, default: '#3b82f6' },
-    headerTitle: { type: String, default: 'Mobile Hub' },
+    headerTitle: { type: String, default: 'Talk N Fix' },
     subtitle: { type: String, default: '88 Tech Avenue, Colombo 03' },
     footerMessage: { type: String, default: 'Thank you for your purchase!' }
   },

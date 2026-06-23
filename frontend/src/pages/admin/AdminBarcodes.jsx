@@ -76,7 +76,7 @@ const AdminBarcodes = () => {
   };
 
   return (
-    <DashboardLayout navItems={navItems} title="Mobile Hub Admin Panel">
+    <DashboardLayout navItems={navItems} title="Talk N Fix Admin Panel">
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
           <div>

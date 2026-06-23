@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children, roles, permission }) => {
   }
 
   if (permission) {
-    const isSuperAdmin = user.email === 'admin@mobilehub.com' || user.isSuperAdmin;
+    const isSuperAdmin = user.email === 'rkdnmadu1993@gmail.com' || user.isSuperAdmin;
     if (!isSuperAdmin) {
       if (!user.permissions || user.permissions[permission] !== true) {
         // Redirect to a default dashboard if they don't have access
